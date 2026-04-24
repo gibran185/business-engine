@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { PinoLogger } from 'nestjs-pino';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { AppointmentsService } from './appointments.service.js';
 
@@ -11,23 +12,36 @@ const customerId = '33333333-3333-3333-3333-333333333333';
 describe('AppointmentsService', () => {
   let service: AppointmentsService;
   let prisma: {
+    $queryRaw: ReturnType<typeof jest.fn>;
+    $transaction: ReturnType<typeof jest.fn>;
     services: { findFirst: ReturnType<typeof jest.fn> };
     appointments: {
       findMany: ReturnType<typeof jest.fn>;
       create: ReturnType<typeof jest.fn>;
     };
   };
+  let logger: {
+    info: ReturnType<typeof jest.fn>;
+    setContext: ReturnType<typeof jest.fn>;
+    warn: ReturnType<typeof jest.fn>;
+  };
 
   beforeEach(async () => {
     prisma = {
+      $queryRaw: jest.fn(),
+      $transaction: jest.fn((callback: (tx: typeof prisma) => unknown) =>
+        callback(prisma),
+      ),
       services: { findFirst: jest.fn() },
       appointments: { findMany: jest.fn(), create: jest.fn() },
     };
+    logger = { info: jest.fn(), setContext: jest.fn(), warn: jest.fn() };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AppointmentsService,
         { provide: PrismaService, useValue: prisma },
+        { provide: PinoLogger, useValue: logger },
       ],
     }).compile();
 
@@ -111,6 +125,11 @@ describe('AppointmentsService', () => {
     );
 
     expect(result).toEqual(created);
+    expect(prisma.$transaction).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({ isolationLevel: 'ReadCommitted' }),
+    );
+    expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
     expect(prisma.appointments.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({

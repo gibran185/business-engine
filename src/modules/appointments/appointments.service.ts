@@ -17,6 +17,11 @@ type BlockingAppointment = {
   services: { duration_minutes: number } | null;
 };
 
+type AppointmentWriteClient = Pick<
+  PrismaService,
+  '$queryRaw' | 'appointments' | 'services'
+>;
+
 @Injectable()
 export class AppointmentsService {
   constructor(
@@ -38,7 +43,29 @@ export class AppointmentsService {
       'create: parsed slot start',
     );
 
-    const service = await this.prisma.services.findFirst({
+    return this.prisma.$transaction(
+      async (tx) => {
+        // Serialize booking attempts per merchant so the conflict check and insert cannot interleave.
+        await tx.$queryRaw`
+          SELECT pg_advisory_xact_lock(
+            hashtext('appointments:create'),
+            hashtext(${dto.merchantId})
+          )
+        `;
+
+        return this.createWhileLocked(tx, dto, customerId, startTime);
+      },
+      { isolationLevel: 'ReadCommitted' },
+    );
+  }
+
+  private async createWhileLocked(
+    db: AppointmentWriteClient,
+    dto: CreateAppointmentDto,
+    customerId: string,
+    startTime: Date,
+  ) {
+    const service = await db.services.findFirst({
       where: {
         id: dto.serviceId,
         merchant_id: dto.merchantId,
@@ -72,6 +99,7 @@ export class AppointmentsService {
     );
 
     const blocking = await this.loadBlockingAppointments(
+      db,
       dto.merchantId,
       startTime,
       slotEnd,
@@ -99,7 +127,7 @@ export class AppointmentsService {
       'create: no conflict, inserting appointment',
     );
 
-    return this.prisma.appointments.create({
+    return db.appointments.create({
       data: {
         merchant_id: dto.merchantId,
         service_id: dto.serviceId,
@@ -120,12 +148,13 @@ export class AppointmentsService {
   }
 
   private async loadBlockingAppointments(
+    db: AppointmentWriteClient,
     merchantId: string,
     slotStart: Date,
     slotEnd: Date,
   ): Promise<BlockingAppointment[]> {
     const windowStart = addMinutes(slotStart, -MAX_SERVICE_DURATION_MINUTES);
-    return this.prisma.appointments.findMany({
+    return db.appointments.findMany({
       where: {
         merchant_id: merchantId,
         status: { notIn: [...CANCELLED_APPOINTMENT_STATUSES] },
