@@ -19,6 +19,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   validate(payload: SupabaseJwtPayload): JwtUser {
+    console.log('JWT Payload received:', payload);
     return {
       userId: payload.sub,
       email: payload.email,
