@@ -7,14 +7,14 @@ module.exports = {
     '^.+\\.ts$': [
       'ts-jest',
       {
-        useESM: true,
+        tsconfig: '<rootDir>/../tsconfig.json',
       },
     ],
   },
   collectCoverageFrom: ['**/*.(t|j)s'],
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
-  extensionsToTreatAsEsm: ['.ts'],
+  /** Match Nest/TS sources that import `./foo.js` (emit specifier). */
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
