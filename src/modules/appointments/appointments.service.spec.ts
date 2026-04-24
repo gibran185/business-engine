@@ -12,7 +12,10 @@ describe('AppointmentsService', () => {
   let service: AppointmentsService;
   let prisma: {
     services: { findFirst: ReturnType<typeof jest.fn> };
-    appointments: { findMany: ReturnType<typeof jest.fn>; create: ReturnType<typeof jest.fn> };
+    appointments: {
+      findMany: ReturnType<typeof jest.fn>;
+      create: ReturnType<typeof jest.fn>;
+    };
   };
 
   beforeEach(async () => {

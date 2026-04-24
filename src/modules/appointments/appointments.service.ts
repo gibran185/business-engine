@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { PinoLogger } from 'nestjs-pino';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import {
   CANCELLED_APPOINTMENT_STATUSES,
@@ -18,10 +19,24 @@ type BlockingAppointment = {
 
 @Injectable()
 export class AppointmentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(AppointmentsService.name);
+  }
 
   async create(dto: CreateAppointmentDto, customerId: string) {
     const startTime = new Date(dto.startTime);
+    this.logger.info(
+      {
+        customerId,
+        merchantId: dto.merchantId,
+        serviceId: dto.serviceId,
+        startTime: startTime.toISOString(),
+      },
+      'create: parsed slot start',
+    );
 
     const service = await this.prisma.services.findFirst({
       where: {
@@ -32,19 +47,57 @@ export class AppointmentsService {
     });
 
     if (!service?.merchant_id) {
+      this.logger.warn(
+        { merchantId: dto.merchantId, serviceId: dto.serviceId },
+        'create: service not found or inactive for merchant',
+      );
       throw new NotFoundException('Service not found for this merchant');
     }
 
+    this.logger.info(
+      {
+        serviceId: service.id,
+        durationMinutes: service.duration_minutes,
+      },
+      'create: service resolved',
+    );
+
     const slotEnd = addMinutes(startTime, service.duration_minutes);
+    this.logger.info(
+      {
+        slotStart: startTime.toISOString(),
+        slotEnd: slotEnd.toISOString(),
+      },
+      'create: slot window computed',
+    );
+
     const blocking = await this.loadBlockingAppointments(
       dto.merchantId,
       startTime,
       slotEnd,
     );
 
+    this.logger.info(
+      { blockingCount: blocking.length, merchantId: dto.merchantId },
+      'create: loaded overlapping appointments for conflict check',
+    );
+
     if (this.slotConflicts(startTime, slotEnd, blocking)) {
+      this.logger.warn(
+        {
+          merchantId: dto.merchantId,
+          slotStart: startTime.toISOString(),
+          slotEnd: slotEnd.toISOString(),
+        },
+        'create: slot conflict — rejecting',
+      );
       throw new ConflictException('That time slot is not available');
     }
+
+    this.logger.info(
+      { merchantId: dto.merchantId, customerId },
+      'create: no conflict, inserting appointment',
+    );
 
     return this.prisma.appointments.create({
       data: {

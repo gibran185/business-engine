@@ -61,11 +61,7 @@ export class AvailabilityService {
     const slots: string[] = [];
     const stepMs = SLOT_STEP_MINUTES * 60_000;
 
-    for (
-      let t = windowStart.getTime();
-      t < windowEnd.getTime();
-      t += stepMs
-    ) {
+    for (let t = windowStart.getTime(); t < windowEnd.getTime(); t += stepMs) {
       const slotStart = new Date(t);
       const slotEnd = addMinutes(slotStart, durationMinutes);
       if (slotEnd.getTime() > windowEnd.getTime()) {
@@ -93,12 +89,7 @@ export class AvailabilityService {
       const duration = appt.services?.duration_minutes ?? 30;
       const apptEnd = addMinutes(appt.start_time, duration);
       if (
-        intervalsOverlapHalfOpen(
-          slotStart,
-          slotEnd,
-          appt.start_time,
-          apptEnd,
-        )
+        intervalsOverlapHalfOpen(slotStart, slotEnd, appt.start_time, apptEnd)
       ) {
         return true;
       }
