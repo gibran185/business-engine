@@ -12,7 +12,7 @@ const customerId = '33333333-3333-3333-3333-333333333333';
 describe('AppointmentsService', () => {
   let service: AppointmentsService;
   let prisma: {
-    $queryRaw: ReturnType<typeof jest.fn>;
+    $executeRaw: ReturnType<typeof jest.fn>;
     $transaction: ReturnType<typeof jest.fn>;
     services: { findFirst: ReturnType<typeof jest.fn> };
     appointments: {
@@ -28,7 +28,7 @@ describe('AppointmentsService', () => {
 
   beforeEach(async () => {
     prisma = {
-      $queryRaw: jest.fn(),
+      $executeRaw: jest.fn(async () => 0),
       $transaction: jest.fn((callback: (tx: typeof prisma) => unknown) =>
         callback(prisma),
       ),
@@ -129,7 +129,7 @@ describe('AppointmentsService', () => {
       expect.any(Function),
       expect.objectContaining({ isolationLevel: 'ReadCommitted' }),
     );
-    expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
+    expect(prisma.$executeRaw).toHaveBeenCalledTimes(1);
     expect(prisma.appointments.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({

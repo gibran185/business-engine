@@ -19,7 +19,7 @@ type BlockingAppointment = {
 
 type AppointmentWriteClient = Pick<
   PrismaService,
-  '$queryRaw' | 'appointments' | 'services'
+  '$executeRaw' | 'appointments' | 'services'
 >;
 
 @Injectable()
@@ -46,7 +46,7 @@ export class AppointmentsService {
     return this.prisma.$transaction(
       async (tx) => {
         // Serialize booking attempts per merchant so the conflict check and insert cannot interleave.
-        await tx.$queryRaw`
+        await tx.$executeRaw`
           SELECT pg_advisory_xact_lock(
             hashtext('appointments:create'),
             hashtext(${dto.merchantId})
