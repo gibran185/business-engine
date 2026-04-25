@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { MerchantsModule } from './modules/merchants/merchants.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { TenancyModule } from './tenancy/tenancy.module';
 
 const pinoLogger = LoggerModule.forRoot({
   pinoHttp: {
@@ -23,6 +24,7 @@ const pinoLogger = LoggerModule.forRoot({
   imports: [
     { ...pinoLogger, global: true },
     PrismaModule,
+    TenancyModule,
     AuthModule,
     MerchantsModule,
     AppointmentsModule,

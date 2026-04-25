@@ -9,7 +9,7 @@ import {
   CANCELLED_APPOINTMENT_STATUSES,
   MAX_SERVICE_DURATION_MINUTES,
 } from './appointments.constants.js';
-import type { CreateAppointmentDto } from './dto/create-appointment.dto.js';
+import type { CreateAppointmentPayload } from './dto/create-appointment-payload.type.js';
 import { addMinutes, intervalsOverlapHalfOpen } from './time-interval.util.js';
 
 type BlockingAppointment = {
@@ -31,7 +31,7 @@ export class AppointmentsService {
     this.logger.setContext(AppointmentsService.name);
   }
 
-  async create(dto: CreateAppointmentDto, customerId: string) {
+  async create(dto: CreateAppointmentPayload, customerId: string) {
     const startTime = new Date(dto.startTime);
     this.logger.info(
       {
@@ -61,7 +61,7 @@ export class AppointmentsService {
 
   private async createWhileLocked(
     db: AppointmentWriteClient,
-    dto: CreateAppointmentDto,
+    dto: CreateAppointmentPayload,
     customerId: string,
     startTime: Date,
   ) {

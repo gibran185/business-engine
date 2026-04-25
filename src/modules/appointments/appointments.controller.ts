@@ -1,14 +1,24 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard.js';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator.js';
 import type { JwtUser } from '../../auth/types/jwt-user.types.js';
 import { AvailabilityService } from './availability.service.js';
 import { AppointmentsService } from './appointments.service.js';
+import { AvailableSlotsQueryDto } from './dto/available-slots-query.dto.js';
 import { AvailabilityQueryDto } from './dto/availability-query.dto.js';
 import { CreateAppointmentDto } from './dto/create-appointment.dto.js';
 
-@Controller('appointments')
+@Controller()
 export class AppointmentsController {
   constructor(
     private readonly appointmentsService: AppointmentsService,
@@ -19,27 +29,50 @@ export class AppointmentsController {
   }
 
   /** Public: client sends merchant + service + time window (e.g. local day as ISO instants). */
-  @Get('availability')
+  @Get('appointments/availability')
   getAvailability(@Query() query: AvailabilityQueryDto) {
     return this.availabilityService.getAvailability(query);
   }
 
-  @Post()
+  /**
+   * Hot path: full UTC day for the given `date=YYYY-MM-DD` (see AvailabilityService).
+   * Backed by the same slot engine; DB uses index on `(merchant_id, start_time)`.
+   */
+  @Get('appointments/available-slots')
+  getAvailableSlots(@Query() query: AvailableSlotsQueryDto) {
+    return this.availabilityService.getAvailableSlotsForDate(
+      query.merchantId,
+      query.serviceId,
+      query.date,
+    );
+  }
+
+  /**
+   * Customer books with the authenticated user as `customer_id`. The merchant
+   * id comes from the path, not the JSON body, so it is not client-controlled
+   * in two places. For staff-only actions, add `MerchantStaffGuard` and
+   * `@StaffMerchantParam()`.
+   */
+  @Post('merchants/:merchantId/appointments')
   @UseGuards(JwtAuthGuard)
   async create(
+    @Param('merchantId', new ParseUUIDPipe()) merchantId: string,
     @Body() dto: CreateAppointmentDto,
     @CurrentUser() user: JwtUser,
   ) {
     this.logger.info(
       {
         customerId: user.userId,
-        merchantId: dto.merchantId,
+        merchantId,
         serviceId: dto.serviceId,
         startTime: dto.startTime,
       },
       'createAppointment: request accepted',
     );
-    const appointment = await this.appointmentsService.create(dto, user.userId);
+    const appointment = await this.appointmentsService.create(
+      { ...dto, merchantId },
+      user.userId,
+    );
     this.logger.info(
       { appointmentId: appointment.id, status: appointment.status },
       'createAppointment: persisted',
