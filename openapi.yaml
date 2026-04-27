@@ -1,0 +1,200 @@
+openapi: 3.0.0
+paths:
+  /:
+    get:
+      operationId: AppController_getHello
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - App
+  /merchants/config/{slug}:
+    get:
+      operationId: MerchantsController_getConfigBySlug
+      parameters:
+        - name: slug
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags: &ref_0
+        - Merchants
+  /merchants/{merchantId}/staff:
+    post:
+      operationId: MerchantsController_createMerchantStaff
+      parameters:
+        - name: merchantId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMerchantStaffDto'
+      responses:
+        '201':
+          description: ''
+      tags: *ref_0
+    get:
+      operationId: MerchantsController_listMerchantStaff
+      parameters:
+        - name: merchantId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags: *ref_0
+  /merchants/{merchantId}/staff/{staffId}:
+    get:
+      operationId: MerchantsController_getStaffDetail
+      parameters:
+        - name: merchantId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: staffId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags: *ref_0
+  /merchants/{merchantId}/staff/{staffId}/services:
+    put:
+      operationId: MerchantsController_setStaffServices
+      parameters:
+        - name: merchantId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: staffId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetStaffServicesDto'
+      responses:
+        '200':
+          description: ''
+      tags: *ref_0
+  /merchants/{merchantId}/staff/{staffId}/working-hours:
+    put:
+      operationId: MerchantsController_setStaffWorkingHours
+      parameters:
+        - name: merchantId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: staffId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetStaffWorkingHoursDto'
+      responses:
+        '200':
+          description: ''
+      tags: *ref_0
+  /appointments/availability:
+    get:
+      operationId: AppointmentsController_getAvailability
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags: &ref_1
+        - Appointments
+  /appointments/available-slots:
+    get:
+      operationId: AppointmentsController_getAvailableSlots
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags: *ref_1
+  /appointments/day-calendar:
+    get:
+      operationId: AppointmentsController_getDayCalendar
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags: *ref_1
+  /appointments/staff-day-calendar:
+    get:
+      operationId: AppointmentsController_getStaffDayCalendar
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags: *ref_1
+  /merchants/{merchantId}/appointments:
+    post:
+      operationId: AppointmentsController_create
+      parameters:
+        - name: merchantId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAppointmentDto'
+      responses:
+        '201':
+          description: ''
+      tags: *ref_1
+info:
+  title: Business Engine API
+  description: API documentation
+  version: 1.0.0
+  contact: {}
+tags: []
+servers: []
+components:
+  securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+  schemas:
+    CreateMerchantStaffDto:
+      type: object
+      properties: {}
+    SetStaffServicesDto:
+      type: object
+      properties: {}
+    SetStaffWorkingHoursDto:
+      type: object
+      properties: {}
+    CreateAppointmentDto:
+      type: object
+      properties: {}
