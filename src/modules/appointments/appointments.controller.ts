@@ -17,6 +17,7 @@ import { AppointmentsService } from './appointments.service.js';
 import { AvailableSlotsQueryDto } from './dto/available-slots-query.dto.js';
 import { AvailabilityQueryDto } from './dto/availability-query.dto.js';
 import { CreateAppointmentDto } from './dto/create-appointment.dto.js';
+import { StaffDayCalendarQueryDto } from './dto/staff-day-calendar-query.dto.js';
 
 @Controller()
 export class AppointmentsController {
@@ -45,6 +46,29 @@ export class AppointmentsController {
       query.serviceId,
       query.date,
     );
+  }
+
+  /**
+   * Public: returns a day "calendar" with FREE/BUSY slots in UTC so clients can
+   * render a grid and only allow selection of FREE slots.
+   */
+  @Get('appointments/day-calendar')
+  getDayCalendar(@Query() query: AvailableSlotsQueryDto) {
+    return this.availabilityService.getDayCalendarForDate(
+      query.merchantId,
+      query.serviceId,
+      query.date,
+    );
+  }
+
+  @Get('appointments/staff-day-calendar')
+  getStaffDayCalendar(@Query() query: StaffDayCalendarQueryDto) {
+    return this.availabilityService.getStaffDayCalendarForDate({
+      merchantId: query.merchantId,
+      serviceId: query.serviceId,
+      date: query.date,
+      staffId: query.staffId,
+    });
   }
 
   /**

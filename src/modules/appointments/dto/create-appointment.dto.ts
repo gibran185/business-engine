@@ -1,4 +1,4 @@
-import { IsISO8601, IsUUID } from 'class-validator';
+import { IsISO8601, IsOptional, IsUUID } from 'class-validator';
 
 /** Body for `POST /merchants/:merchantId/appointments` (merchant is not trusted from the body). */
 export class CreateAppointmentDto {
@@ -7,4 +7,9 @@ export class CreateAppointmentDto {
 
   @IsISO8601()
   startTime!: string;
+
+  /** Optional: pick a specific staff member; otherwise backend auto-assigns. */
+  @IsOptional()
+  @IsUUID('4')
+  staffId?: string;
 }

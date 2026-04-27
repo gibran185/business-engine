@@ -16,8 +16,11 @@ model appointments {
   id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   merchant_id    String?    @db.Uuid
   service_id     String?    @db.Uuid
+  merchant_staff_id String? @db.Uuid
   customer_id    String?    @db.Uuid
   start_time     DateTime   @db.Timestamptz(6)
+  end_time       DateTime?  @db.Timestamptz(6)
+  duration_minutes Int?
   status         String     @default("pending")
   internal_notes String?
   customer_notes String?
@@ -25,8 +28,10 @@ model appointments {
   updated_at     DateTime?  @default(now()) @db.Timestamptz(6)
   merchants      merchants? @relation(fields: [merchant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   services       services?  @relation(fields: [service_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  merchant_staff merchant_staff? @relation(fields: [merchant_staff_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   @@index([merchant_id, start_time])
+  @@index([merchant_id, merchant_staff_id, start_time])
   @@schema("core")
 }
 
@@ -38,6 +43,9 @@ model merchant_staff {
   role        String     @default("staff")
   created_at  DateTime?  @default(now()) @db.Timestamptz(6)
   merchants   merchants? @relation(fields: [merchant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  appointments appointments[]
+  staff_services staff_services[]
+  staff_working_hours staff_working_hours[]
 
   @@unique([merchant_id, user_id])
   @@schema("core")
@@ -51,11 +59,14 @@ model merchants {
   branding_config Json?            @default("{\"logo_url\": null, \"primary_color\": \"#000000\", \"secondary_color\": \"#ffffff\"}")
   address         String?
   phone_number    String?
+  timezone        String           @default("UTC")
   created_at      DateTime?        @default(now()) @db.Timestamptz(6)
   updated_at      DateTime?        @default(now()) @db.Timestamptz(6)
   appointments    appointments[]
   merchant_staff  merchant_staff[]
   services        services[]
+  staff_services  staff_services[]
+  staff_working_hours staff_working_hours[]
 
   @@schema("core")
 }
@@ -72,6 +83,42 @@ model services {
   created_at       DateTime?      @default(now()) @db.Timestamptz(6)
   appointments     appointments[]
   merchants        merchants?     @relation(fields: [merchant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  staff_services   staff_services[]
 
+  @@schema("core")
+}
+
+model staff_services {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  merchant_id      String?       @db.Uuid
+  merchant_staff_id String?      @db.Uuid
+  service_id       String?       @db.Uuid
+  created_at       DateTime?     @default(now()) @db.Timestamptz(6)
+
+  merchants        merchants?     @relation(fields: [merchant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  merchant_staff   merchant_staff? @relation(fields: [merchant_staff_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  services         services?      @relation(fields: [service_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([merchant_staff_id, service_id])
+  @@index([merchant_id, service_id])
+  @@index([service_id, merchant_staff_id])
+  @@schema("core")
+}
+
+model staff_working_hours {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  merchant_id      String?       @db.Uuid
+  merchant_staff_id String?      @db.Uuid
+  day_of_week      Int
+  start_minute     Int
+  end_minute       Int
+  is_active        Boolean?      @default(true)
+  created_at       DateTime?     @default(now()) @db.Timestamptz(6)
+
+  merchants        merchants?     @relation(fields: [merchant_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  merchant_staff   merchant_staff? @relation(fields: [merchant_staff_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([merchant_staff_id, day_of_week])
+  @@index([merchant_id, day_of_week])
   @@schema("core")
 }
