@@ -1,20 +1,25 @@
 import {
   Body,
   Controller,
+  Delete,
+  Get,
+  HttpCode,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
-  UseGuards,
-  Get,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { MerchantsService } from './merchants.service.js';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard.js';
 import { StaffMerchantParam } from '../../tenancy/decorators/staff-merchant-param.decorator.js';
 import { MerchantAdminGuard } from '../../tenancy/merchant-admin.guard.js';
+import { MerchantStaffGuard } from '../../tenancy/merchant-staff.guard.js';
 import { CreateMerchantStaffDto } from './dto/create-merchant-staff.dto.js';
 import { SetStaffServicesDto } from './dto/set-staff-services.dto.js';
 import { SetStaffWorkingHoursDto } from './dto/set-staff-working-hours.dto.js';
+import { UpdateMerchantStaffDto } from './dto/update-merchant-staff.dto.js';
 
 @Controller('merchants')
 export class MerchantsController {
@@ -36,7 +41,7 @@ export class MerchantsController {
   }
 
   @Get(':merchantId/staff')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, MerchantStaffGuard)
   @StaffMerchantParam('merchantId')
   async listMerchantStaff(
     @Param('merchantId', new ParseUUIDPipe()) merchantId: string,
@@ -45,13 +50,35 @@ export class MerchantsController {
   }
 
   @Get(':merchantId/staff/:staffId')
-  @UseGuards(JwtAuthGuard, MerchantAdminGuard)
+  @UseGuards(JwtAuthGuard, MerchantStaffGuard)
   @StaffMerchantParam('merchantId')
   async getStaffDetail(
     @Param('merchantId', new ParseUUIDPipe()) merchantId: string,
     @Param('staffId', new ParseUUIDPipe()) staffId: string,
   ) {
     return this.merchantsService.getMerchantStaffDetail(merchantId, staffId);
+  }
+
+  @Patch(':merchantId/staff/:staffId')
+  @UseGuards(JwtAuthGuard, MerchantAdminGuard)
+  @StaffMerchantParam('merchantId')
+  updateMerchantStaff(
+    @Param('merchantId', new ParseUUIDPipe()) merchantId: string,
+    @Param('staffId', new ParseUUIDPipe()) staffId: string,
+    @Body() dto: UpdateMerchantStaffDto,
+  ) {
+    return this.merchantsService.updateMerchantStaff(merchantId, staffId, dto);
+  }
+
+  @Delete(':merchantId/staff/:staffId')
+  @HttpCode(204)
+  @UseGuards(JwtAuthGuard, MerchantAdminGuard)
+  @StaffMerchantParam('merchantId')
+  async removeMerchantStaff(
+    @Param('merchantId', new ParseUUIDPipe()) merchantId: string,
+    @Param('staffId', new ParseUUIDPipe()) staffId: string,
+  ) {
+    await this.merchantsService.removeMerchantStaff(merchantId, staffId);
   }
 
   @Put(':merchantId/staff/:staffId/services')

@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { MerchantsModule } from './modules/merchants/merchants.module';
+import { ServicesModule } from './modules/services/services.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { TenancyModule } from './tenancy/tenancy.module';
 
@@ -27,6 +28,7 @@ const pinoLogger = LoggerModule.forRoot({
     TenancyModule,
     AuthModule,
     MerchantsModule,
+    ServicesModule,
     AppointmentsModule,
   ],
   controllers: [AppController],

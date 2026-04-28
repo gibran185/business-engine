@@ -72,6 +72,46 @@ paths:
         '200':
           description: ''
       tags: *ref_0
+    patch:
+      operationId: MerchantsController_updateMerchantStaff
+      parameters:
+        - name: merchantId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: staffId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMerchantStaffDto'
+      responses:
+        '200':
+          description: ''
+      tags: *ref_0
+    delete:
+      operationId: MerchantsController_removeMerchantStaff
+      parameters:
+        - name: merchantId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: staffId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '204':
+          description: ''
+      tags: *ref_0
   /merchants/{merchantId}/staff/{staffId}/services:
     put:
       operationId: MerchantsController_setStaffServices
@@ -120,6 +160,96 @@ paths:
         '200':
           description: ''
       tags: *ref_0
+  /merchants/{merchantId}/services:
+    post:
+      operationId: ServicesController_create
+      parameters:
+        - name: merchantId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateServiceDto'
+      responses:
+        '201':
+          description: ''
+      tags: &ref_1
+        - Services
+    get:
+      operationId: ServicesController_findAll
+      parameters:
+        - name: merchantId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags: *ref_1
+  /merchants/{merchantId}/services/{serviceId}:
+    get:
+      operationId: ServicesController_findOne
+      parameters:
+        - name: merchantId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: serviceId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags: *ref_1
+    patch:
+      operationId: ServicesController_update
+      parameters:
+        - name: merchantId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: serviceId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateServiceDto'
+      responses:
+        '200':
+          description: ''
+      tags: *ref_1
+    delete:
+      operationId: ServicesController_remove
+      parameters:
+        - name: merchantId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: serviceId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '204':
+          description: ''
+      tags: *ref_1
   /appointments/availability:
     get:
       operationId: AppointmentsController_getAvailability
@@ -127,7 +257,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: &ref_1
+      tags: &ref_2
         - Appointments
   /appointments/available-slots:
     get:
@@ -136,7 +266,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: *ref_1
+      tags: *ref_2
   /appointments/day-calendar:
     get:
       operationId: AppointmentsController_getDayCalendar
@@ -144,7 +274,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: *ref_1
+      tags: *ref_2
   /appointments/staff-day-calendar:
     get:
       operationId: AppointmentsController_getStaffDayCalendar
@@ -152,7 +282,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: *ref_1
+      tags: *ref_2
   /merchants/{merchantId}/appointments:
     post:
       operationId: AppointmentsController_create
@@ -171,7 +301,7 @@ paths:
       responses:
         '201':
           description: ''
-      tags: *ref_1
+      tags: *ref_2
 info:
   title: Business Engine API
   description: API documentation
@@ -189,10 +319,19 @@ components:
     CreateMerchantStaffDto:
       type: object
       properties: {}
+    UpdateMerchantStaffDto:
+      type: object
+      properties: {}
     SetStaffServicesDto:
       type: object
       properties: {}
     SetStaffWorkingHoursDto:
+      type: object
+      properties: {}
+    CreateServiceDto:
+      type: object
+      properties: {}
+    UpdateServiceDto:
       type: object
       properties: {}
     CreateAppointmentDto:

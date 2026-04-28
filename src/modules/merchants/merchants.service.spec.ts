@@ -8,13 +8,35 @@ describe('MerchantsService', () => {
   let service: MerchantsService;
   let prisma: {
     merchants: { findUnique: jest.Mock };
-    merchant_staff: { create: jest.Mock; findMany: jest.Mock };
+    merchant_staff: {
+      create: jest.Mock;
+      findMany: jest.Mock;
+      findFirst: jest.Mock;
+      count: jest.Mock;
+      update: jest.Mock;
+      delete: jest.Mock;
+    };
+    $transaction: jest.Mock;
   };
 
   beforeEach(async () => {
     prisma = {
       merchants: { findUnique: jest.fn() },
-      merchant_staff: { create: jest.fn(), findMany: jest.fn() },
+      merchant_staff: {
+        create: jest.fn(),
+        findMany: jest.fn(),
+        findFirst: jest.fn(),
+        count: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+      },
+      $transaction: jest.fn(async (fn: (tx: unknown) => unknown) =>
+        fn({
+          staff_services: { deleteMany: jest.fn() },
+          staff_working_hours: { deleteMany: jest.fn() },
+          merchant_staff: { delete: jest.fn() },
+        }),
+      ),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -22,7 +44,7 @@ describe('MerchantsService', () => {
         MerchantsService,
         {
           provide: PrismaService,
-          useValue: prisma,
+          useValue: prisma as unknown as PrismaService,
         },
       ],
     }).compile();
@@ -89,5 +111,76 @@ describe('MerchantsService', () => {
       },
     });
     expect(rows).toHaveLength(2);
+  });
+
+  it('updates merchant staff role', async () => {
+    prisma.merchant_staff.findFirst.mockResolvedValue({
+      id: 'ms1',
+      role: MerchantStaffRole.EMPLOYEE,
+    });
+    prisma.merchant_staff.update.mockResolvedValue({
+      id: 'ms1',
+      merchant_id: 'm1',
+      user_id: 'u1',
+      role: MerchantStaffRole.SUPERVISOR,
+      created_at: new Date(),
+    });
+
+    const res = await service.updateMerchantStaff('m1', 'ms1', {
+      role: MerchantStaffRole.SUPERVISOR,
+    });
+
+    expect(prisma.merchant_staff.update).toHaveBeenCalledWith({
+      where: { id: 'ms1' },
+      data: { role: MerchantStaffRole.SUPERVISOR },
+      select: {
+        id: true,
+        merchant_id: true,
+        user_id: true,
+        role: true,
+        created_at: true,
+      },
+    });
+    expect(res.role).toBe(MerchantStaffRole.SUPERVISOR);
+  });
+
+  it('rejects demoting the last admin', async () => {
+    prisma.merchant_staff.findFirst.mockResolvedValue({
+      id: 'ms1',
+      role: MerchantStaffRole.ADMIN,
+    });
+    prisma.merchant_staff.count.mockResolvedValue(1);
+
+    await expect(
+      service.updateMerchantStaff('m1', 'ms1', {
+        role: MerchantStaffRole.EMPLOYEE,
+      }),
+    ).rejects.toThrow('last admin');
+    expect(prisma.merchant_staff.update).not.toHaveBeenCalled();
+  });
+
+  it('removes merchant staff in a transaction', async () => {
+    prisma.merchant_staff.findFirst.mockResolvedValue({
+      id: 'ms1',
+      role: MerchantStaffRole.EMPLOYEE,
+    });
+    prisma.merchant_staff.count.mockResolvedValue(2);
+
+    await service.removeMerchantStaff('m1', 'ms1');
+
+    expect(prisma.$transaction).toHaveBeenCalled();
+  });
+
+  it('rejects deleting the last admin', async () => {
+    prisma.merchant_staff.findFirst.mockResolvedValue({
+      id: 'ms1',
+      role: MerchantStaffRole.ADMIN,
+    });
+    prisma.merchant_staff.count.mockResolvedValue(1);
+
+    await expect(service.removeMerchantStaff('m1', 'ms1')).rejects.toThrow(
+      'last admin',
+    );
+    expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 });

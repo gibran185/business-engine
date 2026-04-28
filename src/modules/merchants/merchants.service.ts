@@ -1,8 +1,10 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { MerchantStaffRole } from '../../tenancy/merchant-staff-role.enum.js';
 import type { CreateMerchantStaffDto } from './dto/create-merchant-staff.dto.js';
 import type { SetStaffServicesDto } from './dto/set-staff-services.dto.js';
 import type { SetStaffWorkingHoursDto } from './dto/set-staff-working-hours.dto.js';
+import type { UpdateMerchantStaffDto } from './dto/update-merchant-staff.dto.js';
 
 @Injectable()
 export class MerchantsService {
@@ -131,6 +133,83 @@ export class MerchantsService {
         isActive: r.is_active ?? true,
       })),
     };
+  }
+
+  async updateMerchantStaff(
+    merchantId: string,
+    staffId: string,
+    dto: UpdateMerchantStaffDto,
+  ) {
+    const existing = await this.prisma.merchant_staff.findFirst({
+      where: { id: staffId, merchant_id: merchantId },
+      select: { id: true, role: true },
+    });
+    if (!existing) {
+      throw new NotFoundException('Staff not found for this merchant');
+    }
+
+    if (
+      existing.role === MerchantStaffRole.ADMIN &&
+      dto.role !== MerchantStaffRole.ADMIN
+    ) {
+      const adminCount = await this.prisma.merchant_staff.count({
+        where: {
+          merchant_id: merchantId,
+          role: MerchantStaffRole.ADMIN,
+        },
+      });
+      if (adminCount <= 1) {
+        throw new ConflictException(
+          'Cannot change the role of the last admin for this merchant',
+        );
+      }
+    }
+
+    return this.prisma.merchant_staff.update({
+      where: { id: staffId },
+      data: { role: dto.role },
+      select: {
+        id: true,
+        merchant_id: true,
+        user_id: true,
+        role: true,
+        created_at: true,
+      },
+    });
+  }
+
+  async removeMerchantStaff(merchantId: string, staffId: string) {
+    const existing = await this.prisma.merchant_staff.findFirst({
+      where: { id: staffId, merchant_id: merchantId },
+      select: { id: true, role: true },
+    });
+    if (!existing) {
+      throw new NotFoundException('Staff not found for this merchant');
+    }
+
+    if (existing.role === MerchantStaffRole.ADMIN) {
+      const adminCount = await this.prisma.merchant_staff.count({
+        where: {
+          merchant_id: merchantId,
+          role: MerchantStaffRole.ADMIN,
+        },
+      });
+      if (adminCount <= 1) {
+        throw new ConflictException(
+          'Cannot remove the last admin for this merchant',
+        );
+      }
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.staff_services.deleteMany({
+        where: { merchant_id: merchantId, merchant_staff_id: staffId },
+      });
+      await tx.staff_working_hours.deleteMany({
+        where: { merchant_id: merchantId, merchant_staff_id: staffId },
+      });
+      await tx.merchant_staff.delete({ where: { id: staffId } });
+    });
   }
 
   async setStaffServices(

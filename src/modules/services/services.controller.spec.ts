@@ -1,21 +1,21 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { Reflector } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
-import { MerchantsController } from './merchants.controller.js';
-import { MerchantsService } from './merchants.service.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { MerchantAccessService } from '../../tenancy/merchant-access.service.js';
 import { MerchantAdminGuard } from '../../tenancy/merchant-admin.guard.js';
 import { MerchantStaffGuard } from '../../tenancy/merchant-staff.guard.js';
+import { ServicesController } from './services.controller.js';
+import { ServicesService } from './services.service.js';
 
-describe('MerchantsController', () => {
-  let controller: MerchantsController;
+describe('ServicesController', () => {
+  let controller: ServicesController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [MerchantsController],
+      controllers: [ServicesController],
       providers: [
-        MerchantsService,
+        ServicesService,
         MerchantAccessService,
         MerchantAdminGuard,
         MerchantStaffGuard,
@@ -24,13 +24,25 @@ describe('MerchantsController', () => {
           provide: PrismaService,
           useValue: {
             merchants: { findUnique: jest.fn() },
-            merchant_staff: { findFirst: jest.fn() },
+            services: {
+              findFirst: jest.fn(),
+              findMany: jest.fn(),
+              create: jest.fn(),
+              update: jest.fn(),
+            },
+            appointments: { count: jest.fn() },
+            $transaction: jest.fn((fn: (tx: unknown) => Promise<unknown>) =>
+              fn({
+                staff_services: { deleteMany: jest.fn() },
+                services: { delete: jest.fn() },
+              }),
+            ),
           },
         },
       ],
     }).compile();
 
-    controller = module.get<MerchantsController>(MerchantsController);
+    controller = module.get<ServicesController>(ServicesController);
   });
 
   it('should be defined', () => {
