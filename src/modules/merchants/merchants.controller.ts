@@ -36,7 +36,7 @@ export class MerchantsController {
   }
 
   @Get(':merchantId/staff')
-  @UseGuards(JwtAuthGuard, MerchantAdminGuard)
+  @UseGuards(JwtAuthGuard)
   @StaffMerchantParam('merchantId')
   async listMerchantStaff(
     @Param('merchantId', new ParseUUIDPipe()) merchantId: string,
