@@ -3,6 +3,7 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PinoLogger } from 'nestjs-pino';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { CustomerRelationsService } from '../customers/customer-relations.service.js';
 import { AppointmentsService } from './appointments.service.js';
 
 const merchantId = '11111111-1111-1111-1111-111111111111';
@@ -19,6 +20,8 @@ describe('AppointmentsService', () => {
     services: { findFirst: ReturnType<typeof jest.fn> };
     staff_services: { findMany: ReturnType<typeof jest.fn> };
     staff_working_hours: { findMany: ReturnType<typeof jest.fn> };
+    customer_profiles: { upsert: ReturnType<typeof jest.fn> };
+    merchant_customers: { upsert: ReturnType<typeof jest.fn> };
     appointments: {
       findMany: ReturnType<typeof jest.fn>;
       create: ReturnType<typeof jest.fn>;
@@ -28,6 +31,9 @@ describe('AppointmentsService', () => {
     info: ReturnType<typeof jest.fn>;
     setContext: ReturnType<typeof jest.fn>;
     warn: ReturnType<typeof jest.fn>;
+  };
+  let customerRelations: {
+    ensureCustomerMerchantRelation: ReturnType<typeof jest.fn>;
   };
 
   beforeEach(async () => {
@@ -41,15 +47,21 @@ describe('AppointmentsService', () => {
       services: { findFirst: jest.fn() },
       staff_services: { findMany: jest.fn() },
       staff_working_hours: { findMany: jest.fn() },
+      customer_profiles: { upsert: jest.fn() },
+      merchant_customers: { upsert: jest.fn() },
       appointments: { findMany: jest.fn(), create: jest.fn() },
     };
     logger = { info: jest.fn(), setContext: jest.fn(), warn: jest.fn() };
+    customerRelations = {
+      ensureCustomerMerchantRelation: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AppointmentsService,
         { provide: PrismaService, useValue: prisma },
         { provide: PinoLogger, useValue: logger },
+        { provide: CustomerRelationsService, useValue: customerRelations },
       ],
     }).compile();
 
@@ -142,6 +154,11 @@ describe('AppointmentsService', () => {
       created_at: new Date(),
     };
     prisma.appointments.create.mockResolvedValue(created);
+    customerRelations.ensureCustomerMerchantRelation.mockResolvedValue({
+      id: '55555555-5555-5555-5555-555555555555',
+      merchant_id: merchantId,
+      customer_id: customerId,
+    });
 
     const result = await service.create(
       {
@@ -150,6 +167,7 @@ describe('AppointmentsService', () => {
         startTime: '2026-04-23T14:00:00.000Z',
       },
       customerId,
+      'customer@example.com',
     );
 
     expect(result).toEqual(created);
@@ -165,6 +183,14 @@ describe('AppointmentsService', () => {
           customer_id: customerId,
         }),
       }),
+    );
+    expect(customerRelations.ensureCustomerMerchantRelation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        merchantId,
+        customerId,
+        customerEmail: 'customer@example.com',
+      }),
+      prisma,
     );
   });
 
@@ -215,6 +241,9 @@ describe('AppointmentsService', () => {
       duration_minutes: 60,
       status: 'pending',
       created_at: new Date(),
+    });
+    customerRelations.ensureCustomerMerchantRelation.mockResolvedValue({
+      id: '55555555-5555-5555-5555-555555555555',
     });
 
     const result = await service.create(

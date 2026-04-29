@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
+import { CustomersModule } from './modules/customers/customers.module';
 import { MerchantsModule } from './modules/merchants/merchants.module';
 import { ServicesModule } from './modules/services/services.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -27,6 +28,7 @@ const pinoLogger = LoggerModule.forRoot({
     PrismaModule,
     TenancyModule,
     AuthModule,
+    CustomersModule,
     MerchantsModule,
     ServicesModule,
     AppointmentsModule,

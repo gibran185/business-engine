@@ -96,6 +96,7 @@ export class AppointmentsController {
     const appointment = await this.appointmentsService.create(
       { ...dto, merchantId },
       user.userId,
+      user.email,
     );
     this.logger.info(
       { appointmentId: appointment.id, status: appointment.status },

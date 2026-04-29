@@ -19,7 +19,10 @@ import { MerchantStaffGuard } from '../../tenancy/merchant-staff.guard.js';
 import { CreateMerchantStaffDto } from './dto/create-merchant-staff.dto.js';
 import { SetStaffServicesDto } from './dto/set-staff-services.dto.js';
 import { SetStaffWorkingHoursDto } from './dto/set-staff-working-hours.dto.js';
+import { UpdateMerchantCustomerStatusDto } from './dto/update-merchant-customer-status.dto.js';
 import { UpdateMerchantStaffDto } from './dto/update-merchant-staff.dto.js';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator.js';
+import type { JwtUser } from '../../auth/types/jwt-user.types.js';
 
 @Controller('merchants')
 export class MerchantsController {
@@ -47,6 +50,31 @@ export class MerchantsController {
     @Param('merchantId', new ParseUUIDPipe()) merchantId: string,
   ) {
     return this.merchantsService.listMerchantStaff(merchantId);
+  }
+
+  @Get(':merchantId/customers')
+  @UseGuards(JwtAuthGuard, MerchantStaffGuard)
+  @StaffMerchantParam('merchantId')
+  async listMerchantCustomers(
+    @Param('merchantId', new ParseUUIDPipe()) merchantId: string,
+    @CurrentUser() user: JwtUser,
+  ) {
+    return this.merchantsService.listMerchantCustomers(merchantId, user.userId);
+  }
+
+  @Patch(':merchantId/customers/:customerId/status')
+  @UseGuards(JwtAuthGuard, MerchantAdminGuard)
+  @StaffMerchantParam('merchantId')
+  async updateMerchantCustomerStatus(
+    @Param('merchantId', new ParseUUIDPipe()) merchantId: string,
+    @Param('customerId', new ParseUUIDPipe()) customerId: string,
+    @Body() dto: UpdateMerchantCustomerStatusDto,
+  ) {
+    return this.merchantsService.updateMerchantCustomerStatus(
+      merchantId,
+      customerId,
+      dto.status,
+    );
   }
 
   @Get(':merchantId/staff/:staffId')

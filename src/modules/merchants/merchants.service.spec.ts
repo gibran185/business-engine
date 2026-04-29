@@ -16,6 +16,11 @@ describe('MerchantsService', () => {
       update: jest.Mock;
       delete: jest.Mock;
     };
+    merchant_customers: {
+      findMany: jest.Mock;
+      findUnique: jest.Mock;
+      update: jest.Mock;
+    };
     $transaction: jest.Mock;
   };
 
@@ -29,6 +34,11 @@ describe('MerchantsService', () => {
         count: jest.fn(),
         update: jest.fn(),
         delete: jest.fn(),
+      },
+      merchant_customers: {
+        findMany: jest.fn(),
+        findUnique: jest.fn(),
+        update: jest.fn(),
       },
       $transaction: jest.fn(async (fn: (tx: unknown) => unknown) =>
         fn({
@@ -182,5 +192,86 @@ describe('MerchantsService', () => {
       'last admin',
     );
     expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('lists merchant customers with PII for admin/supervisor', async () => {
+    prisma.merchants.findUnique.mockResolvedValue({ id: 'm1' });
+    prisma.merchant_staff.findFirst.mockResolvedValue({
+      role: MerchantStaffRole.SUPERVISOR,
+    });
+    prisma.merchant_customers.findMany.mockResolvedValue([
+      {
+        customer_id: 'c1',
+        first_seen_at: new Date('2026-04-20T10:00:00.000Z'),
+        last_seen_at: new Date('2026-04-25T10:00:00.000Z'),
+        status: 'active',
+        customer_profiles: {
+          full_name: 'Ana Perez',
+          email: 'ana@example.com',
+          phone_number: '+521111111111',
+        },
+      },
+    ]);
+
+    const rows = await service.listMerchantCustomers('m1', 'u-supervisor');
+    expect(rows[0]).toEqual(
+      expect.objectContaining({
+        customerId: 'c1',
+        email: 'ana@example.com',
+        phoneNumber: '+521111111111',
+        status: 'active',
+      }),
+    );
+  });
+
+  it('lists merchant customers with redacted PII for employees', async () => {
+    prisma.merchants.findUnique.mockResolvedValue({ id: 'm1' });
+    prisma.merchant_staff.findFirst.mockResolvedValue({
+      role: MerchantStaffRole.EMPLOYEE,
+    });
+    prisma.merchant_customers.findMany.mockResolvedValue([
+      {
+        customer_id: 'c1',
+        first_seen_at: new Date('2026-04-20T10:00:00.000Z'),
+        last_seen_at: new Date('2026-04-25T10:00:00.000Z'),
+        status: 'unsubscribed',
+        customer_profiles: {
+          full_name: 'Ana Perez',
+          email: 'ana@example.com',
+          phone_number: '+521111111111',
+        },
+      },
+    ]);
+
+    const rows = await service.listMerchantCustomers('m1', 'u-employee');
+    expect(rows[0]).toEqual(
+      expect.objectContaining({
+        customerId: 'c1',
+        email: null,
+        phoneNumber: null,
+        status: 'unsubscribed',
+      }),
+    );
+  });
+
+  it('updates merchant customer status to blocked', async () => {
+    prisma.merchants.findUnique.mockResolvedValue({ id: 'm1' });
+    prisma.merchant_customers.findUnique.mockResolvedValue({ id: 'mc1' });
+    prisma.merchant_customers.update.mockResolvedValue({
+      id: 'mc1',
+      merchant_id: 'm1',
+      customer_id: 'c1',
+      status: 'blocked',
+      first_seen_at: new Date('2026-04-20T10:00:00.000Z'),
+      last_seen_at: new Date('2026-04-25T10:00:00.000Z'),
+    });
+
+    const row = await service.updateMerchantCustomerStatus('m1', 'c1', 'blocked');
+    expect(row.status).toBe('blocked');
+    expect(prisma.merchant_customers.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ status: 'blocked' }),
+      }),
+    );
   });
 });

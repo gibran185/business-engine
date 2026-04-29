@@ -85,6 +85,107 @@ export class MerchantsService {
     });
   }
 
+  async listMerchantCustomers(merchantId: string, requesterUserId: string) {
+    const merchant = await this.prisma.merchants.findUnique({
+      where: { id: merchantId },
+      select: { id: true },
+    });
+
+    if (!merchant) {
+      throw new NotFoundException('Merchant not found');
+    }
+
+    const requesterStaff = await this.prisma.merchant_staff.findFirst({
+      where: { merchant_id: merchantId, user_id: requesterUserId },
+      select: { role: true },
+    });
+    if (!requesterStaff) {
+      throw new NotFoundException('Staff not found for this merchant');
+    }
+
+    const canViewSensitive =
+      requesterStaff.role === MerchantStaffRole.ADMIN ||
+      requesterStaff.role === MerchantStaffRole.SUPERVISOR;
+
+    const rows = await this.prisma.merchant_customers.findMany({
+      where: { merchant_id: merchantId },
+      orderBy: [{ last_seen_at: 'desc' }, { first_seen_at: 'desc' }],
+      select: {
+        customer_id: true,
+        first_seen_at: true,
+        last_seen_at: true,
+        status: true,
+        customer_profiles: {
+          select: {
+            full_name: true,
+            email: true,
+            phone_number: true,
+          },
+        },
+      },
+    });
+
+    return rows.map((row) => ({
+      customerId: row.customer_id,
+      fullName: row.customer_profiles?.full_name ?? null,
+      email: canViewSensitive ? (row.customer_profiles?.email ?? null) : null,
+      phoneNumber: canViewSensitive
+        ? (row.customer_profiles?.phone_number ?? null)
+        : null,
+      firstSeenAt: row.first_seen_at ?? null,
+      lastSeenAt: row.last_seen_at ?? null,
+      status: row.status,
+    }));
+  }
+
+  async updateMerchantCustomerStatus(
+    merchantId: string,
+    customerId: string,
+    status: 'active' | 'blocked',
+  ) {
+    const merchant = await this.prisma.merchants.findUnique({
+      where: { id: merchantId },
+      select: { id: true },
+    });
+    if (!merchant) {
+      throw new NotFoundException('Merchant not found');
+    }
+
+    const relation = await this.prisma.merchant_customers.findUnique({
+      where: {
+        merchant_id_customer_id: {
+          merchant_id: merchantId,
+          customer_id: customerId,
+        },
+      },
+      select: { id: true },
+    });
+    if (!relation) {
+      throw new NotFoundException('Customer relationship not found for this merchant');
+    }
+
+    return this.prisma.merchant_customers.update({
+      where: {
+        merchant_id_customer_id: {
+          merchant_id: merchantId,
+          customer_id: customerId,
+        },
+      },
+      data: {
+        status,
+        updated_at: new Date(),
+      },
+      select: {
+        id: true,
+        merchant_id: true,
+        customer_id: true,
+        status: true,
+        first_seen_at: true,
+        last_seen_at: true,
+      },
+    });
+  }
+
   async getMerchantStaffDetail(merchantId: string, staffId: string) {
     const staff = await this.prisma.merchant_staff.findFirst({
       where: { id: staffId, merchant_id: merchantId },

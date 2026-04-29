@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PinoLogger } from 'nestjs-pino';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { CustomerRelationsService } from '../customers/customer-relations.service.js';
 import {
   CANCELLED_APPOINTMENT_STATUSES,
   MAX_SERVICE_DURATION_MINUTES,
@@ -22,7 +23,7 @@ type BlockingAppointment = {
 
 type AppointmentWriteClient = Pick<
   PrismaService,
-  '$executeRaw' | '$queryRaw' | 'appointments' | 'services' | 'merchants' | 'merchant_staff' | 'staff_services' | 'staff_working_hours'
+  '$executeRaw' | '$queryRaw' | 'appointments' | 'services' | 'merchants' | 'merchant_staff' | 'staff_services' | 'staff_working_hours' | 'customer_profiles' | 'merchant_customers'
 >;
 
 @Injectable()
@@ -30,11 +31,12 @@ export class AppointmentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: PinoLogger,
+    private readonly customerRelations: CustomerRelationsService,
   ) {
     this.logger.setContext(AppointmentsService.name);
   }
 
-  async create(dto: CreateAppointmentPayload, customerId: string) {
+  async create(dto: CreateAppointmentPayload, customerId: string, customerEmail?: string) {
     const startTime = new Date(dto.startTime);
     this.logger.info(
       {
@@ -47,7 +49,8 @@ export class AppointmentsService {
     );
 
     return this.prisma.$transaction(
-      async (tx) => this.createInTransaction(tx, dto, customerId, startTime),
+      async (tx) =>
+        this.createInTransaction(tx, dto, customerId, customerEmail, startTime),
       { isolationLevel: 'ReadCommitted' },
     );
   }
@@ -56,6 +59,7 @@ export class AppointmentsService {
     db: AppointmentWriteClient,
     dto: CreateAppointmentPayload,
     customerId: string,
+    customerEmail: string | undefined,
     startTime: Date,
   ) {
     const service = await db.services.findFirst({
@@ -157,7 +161,7 @@ export class AppointmentsService {
         continue;
       }
 
-      return db.appointments.create({
+      const appointment = await db.appointments.create({
         data: {
           merchant_id: dto.merchantId,
           service_id: dto.serviceId,
@@ -181,6 +185,18 @@ export class AppointmentsService {
           created_at: true,
         },
       });
+
+      await this.customerRelations.ensureCustomerMerchantRelation(
+        {
+          merchantId: dto.merchantId,
+          customerId,
+          customerEmail,
+          observedAt: startTime,
+        },
+        db,
+      );
+
+      return appointment;
     }
 
     throw new ConflictException('No staff available for that time slot');
