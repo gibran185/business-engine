@@ -9,6 +9,75 @@ paths:
           description: ''
       tags:
         - App
+  /customers/me/onboarding:
+    post:
+      operationId: CustomersController_onboarding
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerOnboardingDto'
+      responses:
+        '201':
+          description: ''
+      tags: &ref_0
+        - Customers
+  /customers/me/profile:
+    patch:
+      operationId: CustomersController_updateProfile
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCustomerProfileDto'
+      responses:
+        '200':
+          description: ''
+      tags: *ref_0
+  /customers/me/merchants:
+    post:
+      operationId: CustomersController_associateMerchant
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssociateMerchantDto'
+      responses:
+        '201':
+          description: ''
+      tags: *ref_0
+    get:
+      operationId: CustomersController_listCustomerMerchants
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags: *ref_0
+  /customers/me/merchants/{merchantId}:
+    patch:
+      operationId: CustomersController_unsubscribeMerchant
+      parameters:
+        - name: merchantId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnsubscribeMerchantDto'
+      responses:
+        '200':
+          description: ''
+      tags: *ref_0
   /merchants/config/{slug}:
     get:
       operationId: MerchantsController_getConfigBySlug
@@ -21,7 +90,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: &ref_0
+      tags: &ref_1
         - Merchants
   /merchants/{merchantId}/staff:
     post:
@@ -41,7 +110,7 @@ paths:
       responses:
         '201':
           description: ''
-      tags: *ref_0
+      tags: *ref_1
     get:
       operationId: MerchantsController_listMerchantStaff
       parameters:
@@ -53,7 +122,44 @@ paths:
       responses:
         '200':
           description: ''
-      tags: *ref_0
+      tags: *ref_1
+  /merchants/{merchantId}/customers:
+    get:
+      operationId: MerchantsController_listMerchantCustomers
+      parameters:
+        - name: merchantId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags: *ref_1
+  /merchants/{merchantId}/customers/{customerId}/status:
+    patch:
+      operationId: MerchantsController_updateMerchantCustomerStatus
+      parameters:
+        - name: merchantId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: customerId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMerchantCustomerStatusDto'
+      responses:
+        '200':
+          description: ''
+      tags: *ref_1
   /merchants/{merchantId}/staff/{staffId}:
     get:
       operationId: MerchantsController_getStaffDetail
@@ -71,7 +177,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: *ref_0
+      tags: *ref_1
     patch:
       operationId: MerchantsController_updateMerchantStaff
       parameters:
@@ -94,7 +200,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: *ref_0
+      tags: *ref_1
     delete:
       operationId: MerchantsController_removeMerchantStaff
       parameters:
@@ -111,7 +217,7 @@ paths:
       responses:
         '204':
           description: ''
-      tags: *ref_0
+      tags: *ref_1
   /merchants/{merchantId}/staff/{staffId}/services:
     put:
       operationId: MerchantsController_setStaffServices
@@ -135,7 +241,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: *ref_0
+      tags: *ref_1
   /merchants/{merchantId}/staff/{staffId}/working-hours:
     put:
       operationId: MerchantsController_setStaffWorkingHours
@@ -159,7 +265,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: *ref_0
+      tags: *ref_1
   /merchants/{merchantId}/services:
     post:
       operationId: ServicesController_create
@@ -178,7 +284,7 @@ paths:
       responses:
         '201':
           description: ''
-      tags: &ref_1
+      tags: &ref_2
         - Services
     get:
       operationId: ServicesController_findAll
@@ -191,7 +297,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: *ref_1
+      tags: *ref_2
   /merchants/{merchantId}/services/{serviceId}:
     get:
       operationId: ServicesController_findOne
@@ -209,7 +315,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: *ref_1
+      tags: *ref_2
     patch:
       operationId: ServicesController_update
       parameters:
@@ -232,7 +338,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: *ref_1
+      tags: *ref_2
     delete:
       operationId: ServicesController_remove
       parameters:
@@ -249,7 +355,7 @@ paths:
       responses:
         '204':
           description: ''
-      tags: *ref_1
+      tags: *ref_2
   /appointments/availability:
     get:
       operationId: AppointmentsController_getAvailability
@@ -257,7 +363,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: &ref_2
+      tags: &ref_3
         - Appointments
   /appointments/available-slots:
     get:
@@ -266,7 +372,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: *ref_2
+      tags: *ref_3
   /appointments/day-calendar:
     get:
       operationId: AppointmentsController_getDayCalendar
@@ -274,7 +380,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: *ref_2
+      tags: *ref_3
   /appointments/staff-day-calendar:
     get:
       operationId: AppointmentsController_getStaffDayCalendar
@@ -282,7 +388,7 @@ paths:
       responses:
         '200':
           description: ''
-      tags: *ref_2
+      tags: *ref_3
   /merchants/{merchantId}/appointments:
     post:
       operationId: AppointmentsController_create
@@ -301,7 +407,7 @@ paths:
       responses:
         '201':
           description: ''
-      tags: *ref_2
+      tags: *ref_3
 info:
   title: Business Engine API
   description: API documentation
@@ -316,7 +422,22 @@ components:
       bearerFormat: JWT
       type: http
   schemas:
+    CustomerOnboardingDto:
+      type: object
+      properties: {}
+    UpdateCustomerProfileDto:
+      type: object
+      properties: {}
+    AssociateMerchantDto:
+      type: object
+      properties: {}
+    UnsubscribeMerchantDto:
+      type: object
+      properties: {}
     CreateMerchantStaffDto:
+      type: object
+      properties: {}
+    UpdateMerchantCustomerStatusDto:
       type: object
       properties: {}
     UpdateMerchantStaffDto:
