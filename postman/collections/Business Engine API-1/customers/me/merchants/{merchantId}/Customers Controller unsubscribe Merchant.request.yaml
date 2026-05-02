@@ -1,0 +1,37 @@
+$kind: http-request
+url: "{{baseUrl}}/customers/me/merchants/:merchantId"
+method: PATCH
+headers:
+  Content-Type: application/json
+pathVariables:
+  - key: merchantId
+    value: "{{merchantId}}"
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "status": "unsubscribed"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {}
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Customers Controller unsubscribe Merchant.resources/examples
+order: 1000

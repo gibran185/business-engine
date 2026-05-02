@@ -1,0 +1,32 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/merchants/:merchantId/staff"
+  method: POST
+  pathVariables:
+    merchantId: 11111111-1111-4111-8111-111111111111
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Authorization
+      value: Bearer {{bearerToken}}
+  body:
+    type: json
+    content: |-
+      {
+        "userId": "{{inviteStaffUserId}}",
+        "role": "EMPLOYEE"
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  body:
+    type: json
+    content: |-
+      {
+        "id": "66666666-6666-4666-8666-666666666666",
+        "merchant_id": "11111111-1111-4111-8111-111111111111",
+        "user_id": "55555555-5555-4555-8555-555555555555",
+        "role": "EMPLOYEE",
+        "created_at": "2026-05-01T12:00:00.000Z"
+      }
+order: 1000

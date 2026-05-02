@@ -1,0 +1,42 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/customers/me/onboarding"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Authorization
+      value: Bearer {{bearerToken}}
+      description: Supabase access_token (JwtAuthGuard)
+  body:
+    type: json
+    content: |-
+      {
+        "merchantId": "11111111-1111-4111-8111-111111111111",
+        "fullName": "Jane Customer",
+        "phoneNumber": "+15559876543",
+        "email": "jane@example.com"
+      }
+response:
+  statusCode: 201
+  statusText: Created
+  body:
+    type: json
+    content: |-
+      {
+        "profile": {
+          "id": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+          "email": "jane@example.com",
+          "full_name": "Jane Customer",
+          "phone_number": "+15559876543"
+        },
+        "relation": {
+          "id": "bbbbbbbb-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+          "merchant_id": "11111111-1111-4111-8111-111111111111",
+          "customer_id": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+          "first_seen_at": "2026-05-01T12:00:00.000Z",
+          "last_seen_at": "2026-05-01T12:00:00.000Z",
+          "status": "active"
+        }
+      }
+order: 1000

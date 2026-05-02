@@ -1,0 +1,38 @@
+$kind: http-request
+url: "{{baseUrl}}/merchants/:merchantId/staff"
+method: POST
+headers:
+  Content-Type: application/json
+pathVariables:
+  - key: merchantId
+    value: "{{merchantId}}"
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "userId": "{{inviteStaffUserId}}",
+      "role": "EMPLOYEE"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {}
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Merchants Controller create Merchant Staff.resources/examples
+order: 1000

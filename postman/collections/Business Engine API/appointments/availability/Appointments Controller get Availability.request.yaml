@@ -1,5 +1,0 @@
-$kind: http-request
-url: "{{baseUrl}}/appointments/availability"
-method: GET
-examples: ./.resources/Appointments Controller get Availability.resources/examples
-order: 1000

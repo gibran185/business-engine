@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/appointments/day-calendar?merchantId={{merchantId}}&serviceId={{serviceId}}&date={{appointmentDate}}"
+method: GET
+body:
+  type: text
+  content: ""
+examples: ./.resources/Appointments Controller get Day Calendar.resources/examples
+order: 1000

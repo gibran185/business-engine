@@ -1,0 +1,51 @@
+$kind: http-request
+url: "{{baseUrl}}/merchants/:merchantId/customers/:customerId/status"
+method: PATCH
+headers:
+  Content-Type: application/json
+pathVariables:
+  - key: merchantId
+    value: "{{merchantId}}"
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+  - key: customerId
+    value: "{{customerId}}"
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "status": "active"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {}
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Merchants Controller update Merchant Customer Status.resources/examples
+order: 1000

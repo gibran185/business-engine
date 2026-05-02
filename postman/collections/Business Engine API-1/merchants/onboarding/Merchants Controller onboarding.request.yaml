@@ -1,0 +1,34 @@
+$kind: http-request
+url: "{{baseUrl}}/merchants/onboarding"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "businessName": "Acme Salon",
+      "legalRepresentative": { "firstName": "Maria", "lastName": "Lopez" },
+      "taxId": "ABC123456789",
+      "headquarters": {
+        "firstLine": "Av. Reforma 123",
+        "secondLine": "Piso 4",
+        "zipcode": "01000",
+        "municipality": "Ciudad de México",
+        "state": "CDMX",
+        "country": "Mexico"
+      },
+      "businessPhone": "+525555555555",
+      "geoposition": { "lat": 19.432608, "long": -99.133209 }
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {}
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Merchants Controller onboarding.resources/examples
+order: 1000

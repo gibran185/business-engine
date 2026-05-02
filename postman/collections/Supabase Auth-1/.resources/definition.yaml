@@ -1,0 +1,12 @@
+$kind: collection
+name: Supabase Auth
+description: >
+  GoTrue REST endpoints to obtain Supabase JWTs for testing. Set collection variables from
+  Dashboard → Project Settings → API (Project URL, anon public key). Copy access_token from
+  Sign in response into the Business Engine collection bearerToken (or Authorization header).
+variables:
+  supabaseUrl: https://YOUR_PROJECT_REF.supabase.co
+  supabaseAnonKey: YOUR_SUPABASE_ANON_PUBLIC_KEY
+  testEmail: customer@example.com
+  testPassword: your-password
+  refreshToken: ""

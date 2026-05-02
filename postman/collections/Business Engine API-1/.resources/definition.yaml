@@ -1,0 +1,19 @@
+$kind: collection
+name: Business Engine API
+description: >-
+  Variables mirror postman/environments/Business Engine Local.postman_environment.json.
+  Set bearerToken (Supabase access_token), inviteStaffUserId (auth.users UUID for new staff),
+  and replace merchant/service/staff/customer UUIDs with live values from your DB. Import the
+  Local environment in Postman and select it when sending requests.
+variables:
+  baseUrl: http://localhost:3000
+  bearerToken: ""
+  merchantId: 11111111-1111-4111-8111-111111111111
+  serviceId: 22222222-2222-4222-8222-222222222222
+  staffId: 33333333-3333-4333-8333-333333333333
+  customerId: 44444444-4444-4444-8444-444444444444
+  inviteStaffUserId: 55555555-5555-4555-8555-555555555555
+  merchantSlug: acme-salon
+  appointmentDate: "2026-05-15"
+  availabilityWindowStart: "2026-05-15T08:00:00.000Z"
+  availabilityWindowEnd: "2026-05-15T18:00:00.000Z"

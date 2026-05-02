@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/appointments/availability?merchantId={{merchantId}}&serviceId={{serviceId}}&windowStart={{availabilityWindowStart}}&windowEnd={{availabilityWindowEnd}}"
+method: GET
+body:
+  type: text
+  content: ""
+examples: ./.resources/Appointments Controller get Availability.resources/examples
+order: 1000

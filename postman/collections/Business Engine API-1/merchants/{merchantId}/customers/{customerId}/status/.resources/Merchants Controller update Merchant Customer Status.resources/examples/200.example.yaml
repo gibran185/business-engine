@@ -1,0 +1,33 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/merchants/:merchantId/customers/:customerId/status"
+  method: PATCH
+  pathVariables:
+    merchantId: 11111111-1111-4111-8111-111111111111
+    customerId: 44444444-4444-4444-8444-444444444444
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Authorization
+      value: Bearer {{bearerToken}}
+  body:
+    type: json
+    content: |-
+      {
+        "status": "blocked"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: json
+    content: |-
+      {
+        "id": "bbbbbbbb-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+        "merchant_id": "11111111-1111-4111-8111-111111111111",
+        "customer_id": "44444444-4444-4444-8444-444444444444",
+        "status": "blocked",
+        "first_seen_at": "2026-05-01T10:00:00.000Z",
+        "last_seen_at": "2026-05-02T15:30:00.000Z"
+      }
+order: 1000

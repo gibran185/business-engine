@@ -1,0 +1,41 @@
+$kind: http-request
+url: "{{baseUrl}}/merchants/:merchantId/services"
+method: POST
+headers:
+  Content-Type: application/json
+pathVariables:
+  - key: merchantId
+    value: "{{merchantId}}"
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "name": "Haircut",
+      "description": "Standard cut and style",
+      "price": 35.5,
+      "durationMinutes": 45,
+      "isActive": true
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {}
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Services Controller create.resources/examples
+order: 1000

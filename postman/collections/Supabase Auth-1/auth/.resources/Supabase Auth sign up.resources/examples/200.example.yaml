@@ -1,0 +1,30 @@
+$kind: http-example
+request:
+  url: "{{supabaseUrl}}/auth/v1/signup"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: apikey
+      value: "{{supabaseAnonKey}}"
+    - key: Authorization
+      value: "Bearer {{supabaseAnonKey}}"
+  body:
+    type: json
+    content: |-
+      {
+        "email": "{{testEmail}}",
+        "password": "{{testPassword}}"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: json
+    content: |-
+      {
+        "id": "uuid",
+        "email": "customer@example.com",
+        "confirmation_sent_at": null
+      }
+order: 1000

@@ -1,5 +1,0 @@
-$kind: http-request
-url: "{{baseUrl}}/appointments/staff-day-calendar"
-method: GET
-examples: ./.resources/Appointments Controller get Staff Day Calendar.resources/examples
-order: 1000

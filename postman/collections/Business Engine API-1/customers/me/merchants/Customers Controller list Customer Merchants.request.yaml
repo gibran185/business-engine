@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/customers/me/merchants"
+method: GET
+body:
+  type: text
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Customers Controller list Customer Merchants.resources/examples
+order: 2000

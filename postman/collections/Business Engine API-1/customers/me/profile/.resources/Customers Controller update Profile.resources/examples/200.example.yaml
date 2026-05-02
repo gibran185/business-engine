@@ -1,0 +1,30 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/customers/me/profile"
+  method: PATCH
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Authorization
+      value: Bearer {{bearerToken}}
+  body:
+    type: json
+    content: |-
+      {
+        "fullName": "Jane Customer",
+        "phoneNumber": "+15559876543",
+        "email": "jane.updated@example.com"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: json
+    content: |-
+      {
+        "id": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+        "email": "jane.updated@example.com",
+        "full_name": "Jane Customer",
+        "phone_number": "+15559876543"
+      }
+order: 1000

@@ -1,0 +1,22 @@
+$kind: http-request
+url: "{{baseUrl}}/customers/me/merchants"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "merchantId": "{{merchantId}}"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {}
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Customers Controller associate Merchant.resources/examples
+order: 1000

@@ -1,0 +1,58 @@
+$kind: http-request
+url: "{{baseUrl}}/merchants/:merchantId/staff/:staffId/working-hours"
+method: PUT
+headers:
+  Content-Type: application/json
+pathVariables:
+  - key: merchantId
+    value: "{{merchantId}}"
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+  - key: staffId
+    value: "{{staffId}}"
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "rows": [
+        {
+          "dayOfWeek": 1,
+          "startMinute": 540,
+          "endMinute": 1020,
+          "isActive": true
+        }
+      ]
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {}
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Merchants Controller set Staff Working Hours.resources/examples
+order: 1000

@@ -1,0 +1,24 @@
+$kind: http-request
+url: "{{baseUrl}}/customers/me/profile"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "fullName": "Jane Customer",
+      "phoneNumber": "+15559876543",
+      "email": "jane@example.com"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {}
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Customers Controller update Profile.resources/examples
+order: 1000

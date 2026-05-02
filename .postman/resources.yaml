@@ -9,5 +9,6 @@ localResources:
 # Each entry here maps a local resource to one or more corresponding objects in Postman Cloud
 
 cloudResources:
-  collections:
-    ../postman/collections/Business Engine API: 4371648-26c51cd6-0eee-489c-aeae-53dd64653063
+  collections: {}
+  specs:
+    ../openapi.yaml: a4698846-794e-44f9-b443-22ceba7618ab

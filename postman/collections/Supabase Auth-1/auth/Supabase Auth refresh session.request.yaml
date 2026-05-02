@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{supabaseUrl}}/auth/v1/token?grant_type=refresh_token"
+method: POST
+headers:
+  Content-Type: application/json
+  apikey: "{{supabaseAnonKey}}"
+  Authorization: "Bearer {{supabaseAnonKey}}"
+body:
+  type: json
+  content: |-
+    {
+      "refresh_token": "{{refreshToken}}"
+    }
+examples: ./.resources/Supabase Auth refresh session.resources/examples
+order: 2000

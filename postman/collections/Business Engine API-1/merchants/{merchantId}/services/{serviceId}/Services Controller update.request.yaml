@@ -1,0 +1,54 @@
+$kind: http-request
+url: "{{baseUrl}}/merchants/:merchantId/services/:serviceId"
+method: PATCH
+headers:
+  Content-Type: application/json
+pathVariables:
+  - key: merchantId
+    value: "{{merchantId}}"
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+  - key: serviceId
+    value: "{{serviceId}}"
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "name": "Haircut Deluxe",
+      "price": 42,
+      "durationMinutes": 60,
+      "isActive": false
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {}
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Services Controller update.resources/examples
+order: 2000

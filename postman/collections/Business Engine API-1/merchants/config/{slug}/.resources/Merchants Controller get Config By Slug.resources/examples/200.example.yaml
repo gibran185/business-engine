@@ -1,0 +1,25 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/merchants/config/:slug"
+  method: GET
+  pathVariables:
+    slug: acme-salon
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: json
+    content: |-
+      {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "name": "Acme Salon",
+        "branding_config": {
+          "primaryColor": "#1a73e8",
+          "logoUrl": "https://cdn.example.com/acme/logo.png"
+        },
+        "phone_number": "+525555555555"
+      }
+order: 1000

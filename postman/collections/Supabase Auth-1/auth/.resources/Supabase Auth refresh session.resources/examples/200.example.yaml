@@ -1,0 +1,31 @@
+$kind: http-example
+request:
+  url: "{{supabaseUrl}}/auth/v1/token?grant_type=refresh_token"
+  method: POST
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: apikey
+      value: "{{supabaseAnonKey}}"
+    - key: Authorization
+      value: "Bearer {{supabaseAnonKey}}"
+  body:
+    type: json
+    content: |-
+      {
+        "refresh_token": "{{refreshToken}}"
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: json
+    content: |-
+      {
+        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+        "token_type": "bearer",
+        "expires_in": 3600,
+        "refresh_token": "v1:...",
+        "user": {}
+      }
+order: 1000

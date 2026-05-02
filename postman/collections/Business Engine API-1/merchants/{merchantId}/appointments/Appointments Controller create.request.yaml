@@ -1,0 +1,38 @@
+$kind: http-request
+url: "{{baseUrl}}/merchants/:merchantId/appointments"
+method: POST
+headers:
+  Content-Type: application/json
+pathVariables:
+  - key: merchantId
+    value: "{{merchantId}}"
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "serviceId": "{{serviceId}}",
+      "startTime": "2026-05-15T14:00:00.000Z"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {}
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Appointments Controller create.resources/examples
+order: 1000

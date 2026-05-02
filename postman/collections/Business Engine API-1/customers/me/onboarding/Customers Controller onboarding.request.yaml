@@ -1,0 +1,25 @@
+$kind: http-request
+url: "{{baseUrl}}/customers/me/onboarding"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "merchantId": "{{merchantId}}",
+      "fullName": "Jane Customer",
+      "phoneNumber": "+15559876543",
+      "email": "jane@example.com"
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {}
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Customers Controller onboarding.resources/examples
+order: 1000

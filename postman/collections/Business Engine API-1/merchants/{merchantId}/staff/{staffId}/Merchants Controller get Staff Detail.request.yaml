@@ -1,0 +1,41 @@
+$kind: http-request
+url: "{{baseUrl}}/merchants/:merchantId/staff/:staffId"
+method: GET
+pathVariables:
+  - key: merchantId
+    value: "{{merchantId}}"
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+  - key: staffId
+    value: "{{staffId}}"
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: text
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Merchants Controller get Staff Detail.resources/examples
+order: 1000
