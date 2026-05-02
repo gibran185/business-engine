@@ -1,4 +1,5 @@
 $kind: http-request
+name: Services Controller create
 url: "{{baseUrl}}/merchants/:merchantId/services"
 method: POST
 headers:
@@ -22,9 +23,9 @@ body:
   type: json
   content: |-
     {
-      "name": "Haircut",
-      "description": "Standard cut and style",
-      "price": 35.5,
+      "name": "Haircut for man",
+      "description": "Standard cut and style for man",
+      "price": 175,
       "durationMinutes": 45,
       "isActive": true
     }

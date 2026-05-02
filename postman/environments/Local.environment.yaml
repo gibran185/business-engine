@@ -1,8 +1,0 @@
-name: Local
-values:
-  - key: baseUrl
-    enabled: true
-    value: ''
-  - key: supabaseToken
-    enabled: true
-    value: ''

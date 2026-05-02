@@ -1,4 +1,4 @@
-name: Business Engine — Local
+name: Business Engine — Railway Dev
 values:
   - key: baseUrl
     enabled: true
@@ -35,16 +35,22 @@ values:
     value: '2026-05-15T18:00:00.000Z'
   - key: supabaseUrl
     enabled: true
-    value: 'https://YOUR_PROJECT_REF.supabase.co'
+    value: 'https://jqjtsoibozrgynzoetpn.supabase.co'
   - key: supabaseAnonKey
     enabled: true
     value: ''
   - key: testEmail
     enabled: true
-    value: customer@example.com
+    value: gibran185@gmail.com
   - key: testPassword
     enabled: true
-    value: ''
+    value: Mexico01
   - key: refreshToken
     enabled: true
     value: ''
+  - key: customerTestEmail
+    enabled: true
+    value: test@correo.com
+  - key: customerTestPassword
+    enabled: true
+    value: Mexico01
