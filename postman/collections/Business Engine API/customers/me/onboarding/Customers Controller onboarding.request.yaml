@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/customers/me/onboarding"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: "{}"
+  $type: |-
+    {
+      "type": "object",
+      "properties": {}
+    }
+examples: ./.resources/Customers Controller onboarding.resources/examples
+order: 1000

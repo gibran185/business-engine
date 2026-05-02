@@ -59,6 +59,20 @@ model merchants {
   branding_config Json?            @default("{\"logo_url\": null, \"primary_color\": \"#000000\", \"secondary_color\": \"#ffffff\"}")
   address         String?
   phone_number    String?
+  /// Supabase `auth.users.id` of the business owner (set at onboarding).
+  owner_user_id   String?          @db.Uuid
+  /// Set on onboarding; null for legacy merchants created before onboarding fields existed.
+  legal_representative_first_name  String?
+  legal_representative_last_name   String?
+  tax_id          String?
+  headquarters_first_line    String?
+  headquarters_second_line   String?
+  headquarters_zipcode       String?
+  headquarters_municipality  String?
+  headquarters_state         String?
+  headquarters_country       String?
+  headquarters_latitude      Decimal? @db.Decimal(10, 8)
+  headquarters_longitude     Decimal? @db.Decimal(11, 8)
   timezone        String           @default("UTC")
   created_at      DateTime?        @default(now()) @db.Timestamptz(6)
   updated_at      DateTime?        @default(now()) @db.Timestamptz(6)
@@ -69,6 +83,8 @@ model merchants {
   staff_services  staff_services[]
   staff_working_hours staff_working_hours[]
 
+  @@index([owner_user_id])
+  @@index([tax_id])
   @@schema("core")
 }
 

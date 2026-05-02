@@ -11,6 +11,7 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { MerchantsService } from './merchants.service.js';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard.js';
 import { StaffMerchantParam } from '../../tenancy/decorators/staff-merchant-param.decorator.js';
@@ -23,7 +24,9 @@ import { UpdateMerchantCustomerStatusDto } from './dto/update-merchant-customer-
 import { UpdateMerchantStaffDto } from './dto/update-merchant-staff.dto.js';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator.js';
 import type { JwtUser } from '../../auth/types/jwt-user.types.js';
+import { CreateMerchantOnboardingDto } from './dto/create-merchant-onboarding.dto.js';
 
+@ApiTags('Merchants')
 @Controller('merchants')
 export class MerchantsController {
   constructor(private readonly merchantsService: MerchantsService) {}
@@ -31,6 +34,16 @@ export class MerchantsController {
   @Get('config/:slug')
   async getConfigBySlug(@Param('slug') slug: string) {
     return this.merchantsService.getConfigBySlug(slug);
+  }
+
+  @Post('onboarding')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  async onboarding(
+    @CurrentUser() user: JwtUser,
+    @Body() dto: CreateMerchantOnboardingDto,
+  ) {
+    return this.merchantsService.onboarding(user, dto);
   }
 
   @Post(':merchantId/staff')

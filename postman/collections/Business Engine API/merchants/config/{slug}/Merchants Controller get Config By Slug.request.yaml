@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{baseUrl}}/merchants/config/:slug"
+method: GET
+pathVariables:
+  - key: slug
+    value: string
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+examples: ./.resources/Merchants Controller get Config By Slug.resources/examples
+order: 1000

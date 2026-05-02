@@ -1,0 +1,14 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/merchants/:merchantId/staff/:staffId"
+  method: GET
+  pathVariables:
+    merchantId: string
+    staffId: string
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: text
+    content: ""
+order: 1000

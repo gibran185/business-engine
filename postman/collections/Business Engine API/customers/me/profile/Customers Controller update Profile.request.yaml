@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/customers/me/profile"
+method: PATCH
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: "{}"
+  $type: |-
+    {
+      "type": "object",
+      "properties": {}
+    }
+examples: ./.resources/Customers Controller update Profile.resources/examples
+order: 1000

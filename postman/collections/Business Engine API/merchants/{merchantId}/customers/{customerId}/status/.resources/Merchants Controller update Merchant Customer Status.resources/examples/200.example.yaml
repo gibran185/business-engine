@@ -1,0 +1,19 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/merchants/:merchantId/customers/:customerId/status"
+  method: PATCH
+  headers:
+    Content-Type: application/json
+  pathVariables:
+    merchantId: string
+    customerId: string
+  body:
+    type: json
+    content: "{}"
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: text
+    content: ""
+order: 1000

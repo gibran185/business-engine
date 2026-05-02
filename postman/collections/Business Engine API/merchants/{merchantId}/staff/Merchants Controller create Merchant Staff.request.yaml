@@ -1,0 +1,30 @@
+$kind: http-request
+url: "{{baseUrl}}/merchants/:merchantId/staff"
+method: POST
+headers:
+  Content-Type: application/json
+pathVariables:
+  - key: merchantId
+    value: string
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: "{}"
+  $type: |-
+    {
+      "type": "object",
+      "properties": {}
+    }
+examples: ./.resources/Merchants Controller create Merchant Staff.resources/examples
+order: 2000

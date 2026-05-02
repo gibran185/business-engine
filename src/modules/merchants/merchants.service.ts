@@ -1,7 +1,9 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { MerchantStaffRole } from '../../tenancy/merchant-staff-role.enum.js';
+import type { JwtUser } from '../../auth/types/jwt-user.types.js';
 import type { CreateMerchantStaffDto } from './dto/create-merchant-staff.dto.js';
+import type { CreateMerchantOnboardingDto } from './dto/create-merchant-onboarding.dto.js';
 import type { SetStaffServicesDto } from './dto/set-staff-services.dto.js';
 import type { SetStaffWorkingHoursDto } from './dto/set-staff-working-hours.dto.js';
 import type { UpdateMerchantStaffDto } from './dto/update-merchant-staff.dto.js';
@@ -9,6 +11,155 @@ import type { UpdateMerchantStaffDto } from './dto/update-merchant-staff.dto.js'
 @Injectable()
 export class MerchantsService {
   constructor(private prisma: PrismaService) {}
+
+  async onboarding(user: JwtUser, dto: CreateMerchantOnboardingDto) {
+    const ownerUserId = user.userId;
+    const baseSlug = MerchantsService.slugifyBusinessName(dto.businessName);
+    const addressSummary = MerchantsService.buildHeadquartersSummary(dto);
+    const phone = dto.businessPhone.trim();
+    const taxId = dto.taxId?.trim() ? dto.taxId.trim() : null;
+
+    return this.prisma.$transaction(async (tx) => {
+      let slug = baseSlug;
+      let suffix = 0;
+      while (
+        await tx.merchants.findUnique({
+          where: { slug },
+          select: { id: true },
+        })
+      ) {
+        suffix += 1;
+        slug = `${baseSlug}-${suffix}`;
+      }
+
+      const merchant = await tx.merchants.create({
+        data: {
+          name: dto.businessName.trim(),
+          slug,
+          owner_user_id: ownerUserId,
+          legal_representative_first_name: dto.legalRepresentative.firstName.trim(),
+          legal_representative_last_name: dto.legalRepresentative.lastName.trim(),
+          tax_id: taxId,
+          headquarters_first_line: dto.headquarters.firstLine.trim(),
+          headquarters_second_line: dto.headquarters.secondLine?.trim() || null,
+          headquarters_zipcode: dto.headquarters.zipcode.trim(),
+          headquarters_municipality: dto.headquarters.municipality.trim(),
+          headquarters_state: dto.headquarters.state.trim(),
+          headquarters_country: dto.headquarters.country.trim(),
+          headquarters_latitude: dto.geoposition.lat.toFixed(8),
+          headquarters_longitude: dto.geoposition.long.toFixed(8),
+          phone_number: phone,
+          address: addressSummary,
+        },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          owner_user_id: true,
+          legal_representative_first_name: true,
+          legal_representative_last_name: true,
+          tax_id: true,
+          headquarters_first_line: true,
+          headquarters_second_line: true,
+          headquarters_zipcode: true,
+          headquarters_municipality: true,
+          headquarters_state: true,
+          headquarters_country: true,
+          headquarters_latitude: true,
+          headquarters_longitude: true,
+          phone_number: true,
+          address: true,
+          timezone: true,
+          created_at: true,
+          updated_at: true,
+        },
+      });
+
+      try {
+        const staff = await tx.merchant_staff.create({
+          data: {
+            merchant_id: merchant.id,
+            user_id: ownerUserId,
+            role: MerchantStaffRole.ADMIN,
+          },
+          select: {
+            id: true,
+            merchant_id: true,
+            user_id: true,
+            role: true,
+            created_at: true,
+          },
+        });
+
+        return {
+          merchant: MerchantsService.serializeMerchantRow(merchant),
+          staff,
+        };
+      } catch (err: unknown) {
+        const code = err && typeof err === 'object' && 'code' in err ? (err as { code?: string }).code : undefined;
+        if (code === 'P2002') {
+          throw new ConflictException('Could not complete onboarding (duplicate membership)');
+        }
+        throw err;
+      }
+    });
+  }
+
+  private static slugifyBusinessName(raw: string): string {
+    const trimmed = raw.trim();
+    const ascii = trimmed
+      .normalize('NFD')
+      .replace(/\p{M}/gu, '')
+      .toLowerCase();
+    const slug = ascii
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 80);
+    return slug.length > 0 ? slug : 'merchant';
+  }
+
+  private static buildHeadquartersSummary(dto: CreateMerchantOnboardingDto): string {
+    const h = dto.headquarters;
+    const line12 = [h.firstLine.trim(), h.secondLine?.trim()].filter(Boolean).join(', ');
+    return `${line12}, ${h.zipcode.trim()} ${h.municipality.trim()}, ${h.state.trim()}, ${h.country.trim()}`;
+  }
+
+  private static decimalLikeToNumber(value: unknown): number | null {
+    if (value === null || value === undefined) return null;
+    const n = typeof value === 'number' ? value : Number(String(value));
+    return Number.isFinite(n) ? n : null;
+  }
+
+  private static serializeMerchantRow(
+    row: {
+      id: string;
+      name: string;
+      slug: string;
+      owner_user_id: string | null;
+      legal_representative_first_name: string | null;
+      legal_representative_last_name: string | null;
+      tax_id: string | null;
+      headquarters_first_line: string | null;
+      headquarters_second_line: string | null;
+      headquarters_zipcode: string | null;
+      headquarters_municipality: string | null;
+      headquarters_state: string | null;
+      headquarters_country: string | null;
+      headquarters_latitude: unknown;
+      headquarters_longitude: unknown;
+      phone_number: string | null;
+      address: string | null;
+      timezone: string;
+      created_at: Date | null;
+      updated_at: Date | null;
+    },
+  ) {
+    return {
+      ...row,
+      headquarters_latitude: MerchantsService.decimalLikeToNumber(row.headquarters_latitude),
+      headquarters_longitude: MerchantsService.decimalLikeToNumber(row.headquarters_longitude),
+    };
+  }
 
   async getConfigBySlug(slug: string) {
     const merchant = await this.prisma.merchants.findUnique({

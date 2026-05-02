@@ -7,7 +7,7 @@ import { MerchantStaffRole } from '../../tenancy/merchant-staff-role.enum.js';
 describe('MerchantsService', () => {
   let service: MerchantsService;
   let prisma: {
-    merchants: { findUnique: jest.Mock };
+    merchants: { findUnique: jest.Mock; create: jest.Mock };
     merchant_staff: {
       create: jest.Mock;
       findMany: jest.Mock;
@@ -25,16 +25,21 @@ describe('MerchantsService', () => {
   };
 
   beforeEach(async () => {
+    const merchants = {
+      findUnique: jest.fn(),
+      create: jest.fn(),
+    };
+    const merchant_staff = {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      findFirst: jest.fn(),
+      count: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+    };
     prisma = {
-      merchants: { findUnique: jest.fn() },
-      merchant_staff: {
-        create: jest.fn(),
-        findMany: jest.fn(),
-        findFirst: jest.fn(),
-        count: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
-      },
+      merchants,
+      merchant_staff,
       merchant_customers: {
         findMany: jest.fn(),
         findUnique: jest.fn(),
@@ -42,9 +47,10 @@ describe('MerchantsService', () => {
       },
       $transaction: jest.fn(async (fn: (tx: unknown) => unknown) =>
         fn({
+          merchants,
+          merchant_staff,
           staff_services: { deleteMany: jest.fn() },
           staff_working_hours: { deleteMany: jest.fn() },
-          merchant_staff: { delete: jest.fn() },
         }),
       ),
     };
@@ -64,6 +70,131 @@ describe('MerchantsService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  const onboardingDto = {
+    businessName: 'Acme Spa',
+    legalRepresentative: { firstName: 'Jane', lastName: 'Doe' },
+    taxId: ' TAX123 ',
+    headquarters: {
+      firstLine: '123 Main St',
+      secondLine: 'Floor 2',
+      zipcode: '01000',
+      municipality: 'CDMX',
+      state: 'CMX',
+      country: 'MX',
+    },
+    businessPhone: ' +525555555555 ',
+    geoposition: { lat: 19.432608, long: -99.133209 },
+  };
+
+  it('onboarding creates merchant, owner fields, and admin staff', async () => {
+    prisma.merchants.findUnique.mockResolvedValue(null);
+    prisma.merchants.create.mockResolvedValue({
+      id: 'm-new',
+      name: 'Acme Spa',
+      slug: 'acme-spa',
+      owner_user_id: 'u-owner',
+      legal_representative_first_name: 'Jane',
+      legal_representative_last_name: 'Doe',
+      tax_id: 'TAX123',
+      headquarters_first_line: '123 Main St',
+      headquarters_second_line: 'Floor 2',
+      headquarters_zipcode: '01000',
+      headquarters_municipality: 'CDMX',
+      headquarters_state: 'CMX',
+      headquarters_country: 'MX',
+      headquarters_latitude: '19.43260800',
+      headquarters_longitude: '-99.13320900',
+      phone_number: '+525555555555',
+      address: '123 Main St, Floor 2, 01000 CDMX, CMX, MX',
+      timezone: 'UTC',
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
+    prisma.merchant_staff.create.mockResolvedValue({
+      id: 'ms-new',
+      merchant_id: 'm-new',
+      user_id: 'u-owner',
+      role: MerchantStaffRole.ADMIN,
+      created_at: new Date(),
+    });
+
+    const res = await service.onboarding(
+      { userId: 'u-owner', email: 'owner@test.com' },
+      onboardingDto,
+    );
+
+    expect(prisma.$transaction).toHaveBeenCalled();
+    expect(prisma.merchants.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          name: 'Acme Spa',
+          slug: 'acme-spa',
+          owner_user_id: 'u-owner',
+          legal_representative_first_name: 'Jane',
+          legal_representative_last_name: 'Doe',
+          tax_id: 'TAX123',
+          phone_number: '+525555555555',
+        }),
+      }),
+    );
+    expect(prisma.merchant_staff.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          merchant_id: 'm-new',
+          user_id: 'u-owner',
+          role: MerchantStaffRole.ADMIN,
+        }),
+      }),
+    );
+    expect(res.staff.role).toBe(MerchantStaffRole.ADMIN);
+    expect(res.merchant.headquarters_latitude).toBeCloseTo(19.432608);
+    expect(res.merchant.headquarters_longitude).toBeCloseTo(-99.133209);
+  });
+
+  it('onboarding bumps slug when base slug is taken', async () => {
+    prisma.merchants.findUnique.mockImplementation(async (args: { where: { slug: string } }) => {
+      if (args.where.slug === 'acme-spa') return { id: 'taken' };
+      return null;
+    });
+    prisma.merchants.create.mockResolvedValue({
+      id: 'm2',
+      name: 'Acme Spa',
+      slug: 'acme-spa-1',
+      owner_user_id: 'u1',
+      legal_representative_first_name: 'J',
+      legal_representative_last_name: 'D',
+      tax_id: null,
+      headquarters_first_line: 'L',
+      headquarters_second_line: null,
+      headquarters_zipcode: 'z',
+      headquarters_municipality: 'm',
+      headquarters_state: 's',
+      headquarters_country: 'c',
+      headquarters_latitude: '1',
+      headquarters_longitude: '2',
+      phone_number: 'p',
+      address: 'a',
+      timezone: 'UTC',
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
+    prisma.merchant_staff.create.mockResolvedValue({
+      id: 'ms',
+      merchant_id: 'm2',
+      user_id: 'u1',
+      role: MerchantStaffRole.ADMIN,
+      created_at: new Date(),
+    });
+
+    await service.onboarding({ userId: 'u1' }, onboardingDto);
+
+    expect(prisma.merchants.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ slug: 'acme-spa-1' }),
+      }),
+    );
   });
 
   it('creates merchant staff row', async () => {

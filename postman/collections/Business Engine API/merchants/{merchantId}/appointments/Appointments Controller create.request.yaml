@@ -1,0 +1,30 @@
+$kind: http-request
+url: "{{baseUrl}}/merchants/:merchantId/appointments"
+method: POST
+headers:
+  Content-Type: application/json
+pathVariables:
+  - key: merchantId
+    value: string
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: "{}"
+  $type: |-
+    {
+      "type": "object",
+      "properties": {}
+    }
+examples: ./.resources/Appointments Controller create.resources/examples
+order: 1000

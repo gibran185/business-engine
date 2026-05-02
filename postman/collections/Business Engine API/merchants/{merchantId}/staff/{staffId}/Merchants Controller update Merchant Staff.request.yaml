@@ -1,0 +1,44 @@
+$kind: http-request
+url: "{{baseUrl}}/merchants/:merchantId/staff/:staffId"
+method: PATCH
+headers:
+  Content-Type: application/json
+pathVariables:
+  - key: merchantId
+    value: string
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+  - key: staffId
+    value: string
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: "{}"
+  $type: |-
+    {
+      "type": "object",
+      "properties": {}
+    }
+examples: ./.resources/Merchants Controller update Merchant Staff.resources/examples
+order: 4000

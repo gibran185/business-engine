@@ -1,0 +1,5 @@
+$kind: http-request
+url: "{{baseUrl}}/customers/me/merchants"
+method: GET
+examples: ./.resources/Customers Controller list Customer Merchants.resources/examples
+order: 3000

@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/customers/me/merchants"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: "{}"
+  $type: |-
+    {
+      "type": "object",
+      "properties": {}
+    }
+examples: ./.resources/Customers Controller associate Merchant.resources/examples
+order: 2000

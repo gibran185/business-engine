@@ -92,6 +92,22 @@ paths:
           description: ''
       tags: &ref_1
         - Merchants
+  /merchants/onboarding:
+    post:
+      operationId: MerchantsController_onboarding
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMerchantOnboardingDto'
+      responses:
+        '201':
+          description: ''
+      security:
+        - bearer: []
+      tags: *ref_1
   /merchants/{merchantId}/staff:
     post:
       operationId: MerchantsController_createMerchantStaff
@@ -432,6 +448,9 @@ components:
       type: object
       properties: {}
     UnsubscribeMerchantDto:
+      type: object
+      properties: {}
+    CreateMerchantOnboardingDto:
       type: object
       properties: {}
     CreateMerchantStaffDto:
