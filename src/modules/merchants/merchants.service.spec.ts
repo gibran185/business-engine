@@ -28,6 +28,7 @@ describe('MerchantsService', () => {
     const merchants = {
       findUnique: jest.fn(),
       create: jest.fn(),
+      update: jest.fn(),
     };
     const merchant_staff = {
       create: jest.fn(),
@@ -151,6 +152,134 @@ describe('MerchantsService', () => {
     expect(res.staff.role).toBe(MerchantStaffRole.ADMIN);
     expect(res.merchant.headquarters_latitude).toBeCloseTo(19.432608);
     expect(res.merchant.headquarters_longitude).toBeCloseTo(-99.133209);
+  });
+
+  it('onboarding with only businessName leaves optional columns null', async () => {
+    prisma.merchants.findUnique.mockResolvedValue(null);
+    prisma.merchants.create.mockResolvedValue({
+      id: 'm-partial',
+      name: 'Solo Shop',
+      slug: 'solo-shop',
+      owner_user_id: 'u-owner',
+      legal_representative_first_name: null,
+      legal_representative_last_name: null,
+      tax_id: null,
+      headquarters_first_line: null,
+      headquarters_second_line: null,
+      headquarters_zipcode: null,
+      headquarters_municipality: null,
+      headquarters_state: null,
+      headquarters_country: null,
+      headquarters_latitude: null,
+      headquarters_longitude: null,
+      phone_number: null,
+      address: null,
+      timezone: 'UTC',
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
+    prisma.merchant_staff.create.mockResolvedValue({
+      id: 'ms-p',
+      merchant_id: 'm-partial',
+      user_id: 'u-owner',
+      role: MerchantStaffRole.ADMIN,
+      created_at: new Date(),
+    });
+
+    await service.onboarding({ userId: 'u-owner' }, { businessName: 'Solo Shop' });
+
+    expect(prisma.merchants.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          name: 'Solo Shop',
+          slug: 'solo-shop',
+          owner_user_id: 'u-owner',
+          legal_representative_first_name: null,
+          legal_representative_last_name: null,
+          tax_id: null,
+          phone_number: null,
+          headquarters_first_line: null,
+          address: null,
+          headquarters_latitude: null,
+          headquarters_longitude: null,
+        }),
+      }),
+    );
+  });
+
+  it('updateMerchantOnboarding merges headquarters and rebuilds address when complete', async () => {
+    prisma.merchants.findUnique.mockResolvedValue({
+      id: 'm1',
+      name: 'Acme',
+      slug: 'acme',
+      owner_user_id: 'u1',
+      legal_representative_first_name: null,
+      legal_representative_last_name: null,
+      tax_id: null,
+      headquarters_first_line: null,
+      headquarters_second_line: null,
+      headquarters_zipcode: null,
+      headquarters_municipality: null,
+      headquarters_state: null,
+      headquarters_country: null,
+      headquarters_latitude: null,
+      headquarters_longitude: null,
+      phone_number: null,
+      address: null,
+      timezone: 'UTC',
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
+    prisma.merchants.update.mockResolvedValue({
+      id: 'm1',
+      name: 'Acme',
+      slug: 'acme',
+      owner_user_id: 'u1',
+      legal_representative_first_name: 'Maria',
+      legal_representative_last_name: 'Lopez',
+      tax_id: null,
+      headquarters_first_line: 'Av. Reforma 123',
+      headquarters_second_line: null,
+      headquarters_zipcode: '01000',
+      headquarters_municipality: 'Ciudad de México',
+      headquarters_state: 'CDMX',
+      headquarters_country: 'Mexico',
+      headquarters_latitude: '19.43260800',
+      headquarters_longitude: '-99.13320900',
+      phone_number: '+525555555555',
+      address: 'Av. Reforma 123, 01000 Ciudad de México, CDMX, Mexico',
+      timezone: 'UTC',
+      created_at: new Date(),
+      updated_at: new Date(),
+    });
+
+    const res = await service.updateMerchantOnboarding('m1', {
+      legalRepresentative: { firstName: 'Maria', lastName: 'Lopez' },
+      businessPhone: '+525555555555',
+      headquarters: {
+        firstLine: 'Av. Reforma 123',
+        zipcode: '01000',
+        municipality: 'Ciudad de México',
+        state: 'CDMX',
+        country: 'Mexico',
+      },
+      geoposition: { lat: 19.432608, long: -99.133209 },
+    });
+
+    expect(prisma.merchants.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'm1' },
+        data: expect.objectContaining({
+          legal_representative_first_name: 'Maria',
+          legal_representative_last_name: 'Lopez',
+          phone_number: '+525555555555',
+          headquarters_first_line: 'Av. Reforma 123',
+          address: 'Av. Reforma 123, 01000 Ciudad de México, CDMX, Mexico',
+        }),
+      }),
+    );
+    expect(res.phone_number).toBe('+525555555555');
+    expect(res.address).toBe('Av. Reforma 123, 01000 Ciudad de México, CDMX, Mexico');
   });
 
   it('onboarding bumps slug when base slug is taken', async () => {

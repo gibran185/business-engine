@@ -38,6 +38,21 @@ describe('MerchantsController', () => {
     expect(controller).toBeDefined();
   });
 
+  it('delegates updateMerchantOnboarding to MerchantsService', async () => {
+    const merchantsService = module.get(MerchantsService);
+    const spy = jest.spyOn(merchantsService, 'updateMerchantOnboarding').mockResolvedValue({} as never);
+
+    await controller.updateMerchantOnboarding(
+      '11111111-1111-4111-8111-111111111111',
+      { businessPhone: '+15555550123' } as never,
+    );
+
+    expect(spy).toHaveBeenCalledWith('11111111-1111-4111-8111-111111111111', {
+      businessPhone: '+15555550123',
+    });
+    spy.mockRestore();
+  });
+
   it('delegates onboarding to MerchantsService', async () => {
     const merchantsService = module.get(MerchantsService);
     const spy = jest

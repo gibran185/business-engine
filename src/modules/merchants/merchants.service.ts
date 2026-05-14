@@ -1,12 +1,18 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '../../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { MerchantStaffRole } from '../../tenancy/merchant-staff-role.enum.js';
 import type { JwtUser } from '../../auth/types/jwt-user.types.js';
 import type { CreateMerchantStaffDto } from './dto/create-merchant-staff.dto.js';
-import type { CreateMerchantOnboardingDto } from './dto/create-merchant-onboarding.dto.js';
+import type {
+  CreateMerchantOnboardingDto,
+  HeadquartersOnboardingDto,
+} from './dto/create-merchant-onboarding.dto.js';
 import type { SetStaffServicesDto } from './dto/set-staff-services.dto.js';
 import type { SetStaffWorkingHoursDto } from './dto/set-staff-working-hours.dto.js';
 import type { UpdateMerchantStaffDto } from './dto/update-merchant-staff.dto.js';
+import type { UpdateHeadquartersOnboardingDto } from './dto/update-merchant-onboarding.dto.js';
+import type { UpdateMerchantOnboardingDto } from './dto/update-merchant-onboarding.dto.js';
 
 @Injectable()
 export class MerchantsService {
@@ -15,9 +21,16 @@ export class MerchantsService {
   async onboarding(user: JwtUser, dto: CreateMerchantOnboardingDto) {
     const ownerUserId = user.userId;
     const baseSlug = MerchantsService.slugifyBusinessName(dto.businessName);
-    const addressSummary = MerchantsService.buildHeadquartersSummary(dto);
-    const phone = dto.businessPhone.trim();
+    const addressSummary = dto.headquarters
+      ? MerchantsService.buildHeadquartersSummaryFromDto(dto.headquarters)
+      : null;
+    const phone = dto.businessPhone?.trim() ? dto.businessPhone.trim() : null;
     const taxId = dto.taxId?.trim() ? dto.taxId.trim() : null;
+    const lrFirst = dto.legalRepresentative?.firstName?.trim() ?? null;
+    const lrLast = dto.legalRepresentative?.lastName?.trim() ?? null;
+    const hq = dto.headquarters;
+    const latStr = dto.geoposition ? dto.geoposition.lat.toFixed(8) : null;
+    const lngStr = dto.geoposition ? dto.geoposition.long.toFixed(8) : null;
 
     return this.prisma.$transaction(async (tx) => {
       let slug = baseSlug;
@@ -37,17 +50,17 @@ export class MerchantsService {
           name: dto.businessName.trim(),
           slug,
           owner_user_id: ownerUserId,
-          legal_representative_first_name: dto.legalRepresentative.firstName.trim(),
-          legal_representative_last_name: dto.legalRepresentative.lastName.trim(),
+          legal_representative_first_name: lrFirst,
+          legal_representative_last_name: lrLast,
           tax_id: taxId,
-          headquarters_first_line: dto.headquarters.firstLine.trim(),
-          headquarters_second_line: dto.headquarters.secondLine?.trim() || null,
-          headquarters_zipcode: dto.headquarters.zipcode.trim(),
-          headquarters_municipality: dto.headquarters.municipality.trim(),
-          headquarters_state: dto.headquarters.state.trim(),
-          headquarters_country: dto.headquarters.country.trim(),
-          headquarters_latitude: dto.geoposition.lat.toFixed(8),
-          headquarters_longitude: dto.geoposition.long.toFixed(8),
+          headquarters_first_line: hq?.firstLine.trim() ?? null,
+          headquarters_second_line: hq?.secondLine?.trim() || null,
+          headquarters_zipcode: hq?.zipcode.trim() ?? null,
+          headquarters_municipality: hq?.municipality.trim() ?? null,
+          headquarters_state: hq?.state.trim() ?? null,
+          headquarters_country: hq?.country.trim() ?? null,
+          headquarters_latitude: latStr,
+          headquarters_longitude: lngStr,
           phone_number: phone,
           address: addressSummary,
         },
@@ -105,6 +118,117 @@ export class MerchantsService {
     });
   }
 
+  async updateMerchantOnboarding(merchantId: string, dto: UpdateMerchantOnboardingDto) {
+    const existing = await this.prisma.merchants.findUnique({
+      where: { id: merchantId },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        owner_user_id: true,
+        legal_representative_first_name: true,
+        legal_representative_last_name: true,
+        tax_id: true,
+        headquarters_first_line: true,
+        headquarters_second_line: true,
+        headquarters_zipcode: true,
+        headquarters_municipality: true,
+        headquarters_state: true,
+        headquarters_country: true,
+        headquarters_latitude: true,
+        headquarters_longitude: true,
+        phone_number: true,
+        address: true,
+        timezone: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Merchant not found');
+    }
+
+    const data: Prisma.merchantsUpdateInput = {
+      updated_at: new Date(),
+    };
+
+    if (dto.businessName !== undefined) {
+      data.name = dto.businessName.trim();
+    }
+    if (dto.taxId !== undefined) {
+      data.tax_id = dto.taxId.trim() ? dto.taxId.trim() : null;
+    }
+    if (dto.businessPhone !== undefined) {
+      data.phone_number = dto.businessPhone.trim();
+    }
+    if (dto.legalRepresentative) {
+      const lr = dto.legalRepresentative;
+      if (lr.firstName !== undefined) {
+        data.legal_representative_first_name = lr.firstName.trim();
+      }
+      if (lr.lastName !== undefined) {
+        data.legal_representative_last_name = lr.lastName.trim();
+      }
+    }
+    if (dto.geoposition) {
+      data.headquarters_latitude = dto.geoposition.lat.toFixed(8);
+      data.headquarters_longitude = dto.geoposition.long.toFixed(8);
+    }
+
+    if (dto.headquarters) {
+      const merged = MerchantsService.mergeHeadquartersPatch(
+        {
+          headquarters_first_line: existing.headquarters_first_line,
+          headquarters_second_line: existing.headquarters_second_line,
+          headquarters_zipcode: existing.headquarters_zipcode,
+          headquarters_municipality: existing.headquarters_municipality,
+          headquarters_state: existing.headquarters_state,
+          headquarters_country: existing.headquarters_country,
+        },
+        dto.headquarters,
+      );
+      data.headquarters_first_line = merged.headquarters_first_line;
+      data.headquarters_second_line = merged.headquarters_second_line;
+      data.headquarters_zipcode = merged.headquarters_zipcode;
+      data.headquarters_municipality = merged.headquarters_municipality;
+      data.headquarters_state = merged.headquarters_state;
+      data.headquarters_country = merged.headquarters_country;
+      data.address = MerchantsService.hasCompleteHeadquartersCols(merged)
+        ? MerchantsService.buildHeadquartersSummaryFromCols(merged)
+        : null;
+    }
+
+    const merchant = await this.prisma.merchants.update({
+      where: { id: merchantId },
+      data,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        owner_user_id: true,
+        legal_representative_first_name: true,
+        legal_representative_last_name: true,
+        tax_id: true,
+        headquarters_first_line: true,
+        headquarters_second_line: true,
+        headquarters_zipcode: true,
+        headquarters_municipality: true,
+        headquarters_state: true,
+        headquarters_country: true,
+        headquarters_latitude: true,
+        headquarters_longitude: true,
+        phone_number: true,
+        address: true,
+        timezone: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+
+    return MerchantsService.serializeMerchantRow(merchant);
+  }
+
   private static slugifyBusinessName(raw: string): string {
     const trimmed = raw.trim();
     const ascii = trimmed
@@ -118,10 +242,62 @@ export class MerchantsService {
     return slug.length > 0 ? slug : 'merchant';
   }
 
-  private static buildHeadquartersSummary(dto: CreateMerchantOnboardingDto): string {
-    const h = dto.headquarters;
+  private static buildHeadquartersSummaryFromDto(h: HeadquartersOnboardingDto): string {
     const line12 = [h.firstLine.trim(), h.secondLine?.trim()].filter(Boolean).join(', ');
     return `${line12}, ${h.zipcode.trim()} ${h.municipality.trim()}, ${h.state.trim()}, ${h.country.trim()}`;
+  }
+
+  private static mergeHeadquartersPatch(
+    existing: {
+      headquarters_first_line: string | null;
+      headquarters_second_line: string | null;
+      headquarters_zipcode: string | null;
+      headquarters_municipality: string | null;
+      headquarters_state: string | null;
+      headquarters_country: string | null;
+    },
+    patch: UpdateHeadquartersOnboardingDto,
+  ) {
+    const pick = (next: string | undefined, prev: string | null) =>
+      next !== undefined ? next.trim() : prev;
+    const pickSecond = (next: string | undefined, prev: string | null) => {
+      if (next === undefined) return prev;
+      const t = next.trim();
+      return t === '' ? null : t;
+    };
+    return {
+      headquarters_first_line: pick(patch.firstLine, existing.headquarters_first_line),
+      headquarters_second_line: pickSecond(patch.secondLine, existing.headquarters_second_line),
+      headquarters_zipcode: pick(patch.zipcode, existing.headquarters_zipcode),
+      headquarters_municipality: pick(patch.municipality, existing.headquarters_municipality),
+      headquarters_state: pick(patch.state, existing.headquarters_state),
+      headquarters_country: pick(patch.country, existing.headquarters_country),
+    };
+  }
+
+  private static hasCompleteHeadquartersCols(c: {
+    headquarters_first_line: string | null;
+    headquarters_zipcode: string | null;
+    headquarters_municipality: string | null;
+    headquarters_state: string | null;
+    headquarters_country: string | null;
+  }): boolean {
+    return [c.headquarters_first_line, c.headquarters_zipcode, c.headquarters_municipality, c.headquarters_state, c.headquarters_country].every(
+      (v) => typeof v === 'string' && v.trim() !== '',
+    );
+  }
+
+  private static buildHeadquartersSummaryFromCols(c: {
+    headquarters_first_line: string | null;
+    headquarters_second_line: string | null;
+    headquarters_zipcode: string | null;
+    headquarters_municipality: string | null;
+    headquarters_state: string | null;
+    headquarters_country: string | null;
+  }): string {
+    const first = c.headquarters_first_line!.trim();
+    const line12 = [first, c.headquarters_second_line?.trim()].filter(Boolean).join(', ');
+    return `${line12}, ${c.headquarters_zipcode!.trim()} ${c.headquarters_municipality!.trim()}, ${c.headquarters_state!.trim()}, ${c.headquarters_country!.trim()}`;
   }
 
   private static decimalLikeToNumber(value: unknown): number | null {

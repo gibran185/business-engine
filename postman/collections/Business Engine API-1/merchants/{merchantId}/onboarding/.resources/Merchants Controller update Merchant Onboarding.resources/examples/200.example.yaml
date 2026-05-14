@@ -1,0 +1,55 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/merchants/:merchantId/onboarding"
+  method: PATCH
+  pathVariables:
+    merchantId: 11111111-1111-4111-8111-111111111111
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Authorization
+      value: Bearer {{bearerToken}}
+  body:
+    type: json
+    content: |-
+      {
+        "legalRepresentative": { "firstName": "Maria", "lastName": "Lopez" },
+        "businessPhone": "+525555555555",
+        "headquarters": {
+          "firstLine": "Av. Reforma 123",
+          "zipcode": "01000",
+          "municipality": "Ciudad de México",
+          "state": "CDMX",
+          "country": "Mexico"
+        },
+        "geoposition": { "lat": 19.432608, "long": -99.133209 }
+      }
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: json
+    content: |-
+      {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "name": "Acme Salon",
+        "slug": "acme-salon",
+        "owner_user_id": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+        "legal_representative_first_name": "Maria",
+        "legal_representative_last_name": "Lopez",
+        "tax_id": null,
+        "headquarters_first_line": "Av. Reforma 123",
+        "headquarters_second_line": null,
+        "headquarters_zipcode": "01000",
+        "headquarters_municipality": "Ciudad de México",
+        "headquarters_state": "CDMX",
+        "headquarters_country": "Mexico",
+        "headquarters_latitude": 19.432608,
+        "headquarters_longitude": -99.133209,
+        "phone_number": "+525555555555",
+        "address": "Av. Reforma 123, 01000 Ciudad de México, CDMX, Mexico",
+        "timezone": "UTC",
+        "created_at": "2026-05-01T12:00:00.000Z",
+        "updated_at": "2026-05-01T12:30:00.000Z"
+      }
+order: 1000

@@ -57,23 +57,27 @@ export class CreateMerchantOnboardingDto {
   @IsNotEmpty()
   businessName!: string;
 
+  @IsOptional()
   @ValidateNested()
   @Type(() => LegalRepresentativeOnboardingDto)
-  legalRepresentative!: LegalRepresentativeOnboardingDto;
+  legalRepresentative?: LegalRepresentativeOnboardingDto;
 
   @IsOptional()
   @IsString()
   taxId?: string;
 
+  @IsOptional()
   @ValidateNested()
   @Type(() => HeadquartersOnboardingDto)
-  headquarters!: HeadquartersOnboardingDto;
+  headquarters?: HeadquartersOnboardingDto;
 
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  businessPhone!: string;
+  businessPhone?: string;
 
+  @IsOptional()
   @ValidateNested()
   @Type(() => GeopositionOnboardingDto)
-  geoposition!: GeopositionOnboardingDto;
+  geoposition?: GeopositionOnboardingDto;
 }

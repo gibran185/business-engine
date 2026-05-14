@@ -1,0 +1,48 @@
+$kind: http-request
+url: "{{baseUrl}}/merchants/:merchantId/onboarding"
+method: PATCH
+headers:
+  Content-Type: application/json
+pathVariables:
+  - key: merchantId
+    value: "{{merchantId}}"
+    $type: |-
+      {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ]
+      }
+body:
+  type: json
+  content: |-
+    {
+      "legalRepresentative": { "firstName": "Maria", "lastName": "Lopez" },
+      "taxId": "ABC123456789",
+      "headquarters": {
+        "firstLine": "Av. Reforma 123",
+        "secondLine": "Piso 4",
+        "zipcode": "01000",
+        "municipality": "Ciudad de México",
+        "state": "CDMX",
+        "country": "Mexico"
+      },
+      "businessPhone": "+525555555555",
+      "geoposition": { "lat": 19.432608, "long": -99.133209 }
+    }
+  $type: |-
+    {
+      "type": "object",
+      "properties": {}
+    }
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Merchants Controller update Merchant Onboarding.resources/examples
+order: 1000

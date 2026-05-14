@@ -25,6 +25,7 @@ import { UpdateMerchantStaffDto } from './dto/update-merchant-staff.dto.js';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator.js';
 import type { JwtUser } from '../../auth/types/jwt-user.types.js';
 import { CreateMerchantOnboardingDto } from './dto/create-merchant-onboarding.dto.js';
+import { UpdateMerchantOnboardingDto } from './dto/update-merchant-onboarding.dto.js';
 
 @ApiTags('Merchants')
 @Controller('merchants')
@@ -44,6 +45,17 @@ export class MerchantsController {
     @Body() dto: CreateMerchantOnboardingDto,
   ) {
     return this.merchantsService.onboarding(user, dto);
+  }
+
+  @Patch(':merchantId/onboarding')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, MerchantAdminGuard)
+  @StaffMerchantParam('merchantId')
+  async updateMerchantOnboarding(
+    @Param('merchantId', new ParseUUIDPipe()) merchantId: string,
+    @Body() dto: UpdateMerchantOnboardingDto,
+  ) {
+    return this.merchantsService.updateMerchantOnboarding(merchantId, dto);
   }
 
   @Post(':merchantId/staff')

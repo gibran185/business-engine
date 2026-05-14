@@ -108,6 +108,27 @@ paths:
       security:
         - bearer: []
       tags: *ref_1
+  /merchants/{merchantId}/onboarding:
+    patch:
+      operationId: MerchantsController_updateMerchantOnboarding
+      parameters:
+        - name: merchantId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMerchantOnboardingDto'
+      responses:
+        '200':
+          description: ''
+      security:
+        - bearer: []
+      tags: *ref_1
   /merchants/{merchantId}/staff:
     post:
       operationId: MerchantsController_createMerchantStaff
@@ -451,6 +472,9 @@ components:
       type: object
       properties: {}
     CreateMerchantOnboardingDto:
+      type: object
+      properties: {}
+    UpdateMerchantOnboardingDto:
       type: object
       properties: {}
     CreateMerchantStaffDto:
