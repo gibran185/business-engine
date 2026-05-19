@@ -149,6 +149,7 @@ export class MerchantsService {
         headquarters_longitude: true,
         phone_number: true,
         address: true,
+        branding_config: true,
         logo_url: true,
         timezone: true,
         created_at: true,
@@ -185,6 +186,9 @@ export class MerchantsService {
     if (dto.geoposition) {
       data.headquarters_latitude = dto.geoposition.lat.toFixed(8);
       data.headquarters_longitude = dto.geoposition.long.toFixed(8);
+    }
+    if (dto.brandingConfig !== undefined) {
+      data.branding_config = dto.brandingConfig as Prisma.InputJsonValue;
     }
 
     if (dto.headquarters) {
@@ -231,6 +235,7 @@ export class MerchantsService {
         headquarters_longitude: true,
         phone_number: true,
         address: true,
+        branding_config: true,
         logo_url: true,
         timezone: true,
         created_at: true,

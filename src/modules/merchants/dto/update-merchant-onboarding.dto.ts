@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
+import { IsNotEmpty, IsObject, IsOptional, IsString, ValidateNested } from 'class-validator';
 import { GeopositionOnboardingDto } from './create-merchant-onboarding.dto.js';
 
 /** Partial legal representative for PATCH onboarding. */
@@ -76,4 +76,8 @@ export class UpdateMerchantOnboardingDto {
   @ValidateNested()
   @Type(() => GeopositionOnboardingDto)
   geoposition?: GeopositionOnboardingDto;
+
+  @IsOptional()
+  @IsObject()
+  brandingConfig?: Record<string, unknown>;
 }
