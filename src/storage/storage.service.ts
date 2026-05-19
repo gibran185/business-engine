@@ -1,8 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 @Injectable()
-export class StorageService {
+export class StorageService implements OnModuleInit {
   private readonly logger = new Logger(StorageService.name);
   private readonly supabase: SupabaseClient;
   private readonly bucketName = 'merchant-logos';
@@ -15,10 +15,28 @@ export class StorageService {
       this.logger.warn(
         'SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set. Storage operations will fail.',
       );
-      // Create a dummy client that will throw on use
       this.supabase = null as unknown as SupabaseClient;
     } else {
       this.supabase = createClient(supabaseUrl, serviceRoleKey);
+    }
+  }
+
+  async onModuleInit() {
+    if (!this.supabase) return;
+    const { data: buckets } = await this.supabase.storage.listBuckets();
+    const exists = buckets?.some((b) => b.name === this.bucketName);
+    if (!exists) {
+      const { error } = await this.supabase.storage.createBucket(
+        this.bucketName,
+        { public: true },
+      );
+      if (error) {
+        this.logger.error(
+          `Failed to create bucket "${this.bucketName}": ${error.message}`,
+        );
+      } else {
+        this.logger.log(`Created storage bucket "${this.bucketName}"`);
+      }
     }
   }
 
