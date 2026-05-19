@@ -350,9 +350,28 @@ export class MerchantsService {
     },
   ) {
     return {
-      ...row,
-      headquarters_latitude: MerchantsService.decimalLikeToNumber(row.headquarters_latitude),
-      headquarters_longitude: MerchantsService.decimalLikeToNumber(row.headquarters_longitude),
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      ownerUserId: row.owner_user_id,
+      legalRepresentativeFirstName: row.legal_representative_first_name,
+      legalRepresentativeLastName: row.legal_representative_last_name,
+      taxId: row.tax_id,
+      headquartersFirstLine: row.headquarters_first_line,
+      headquartersSecondLine: row.headquarters_second_line,
+      headquartersZipcode: row.headquarters_zipcode,
+      headquartersMunicipality: row.headquarters_municipality,
+      headquartersState: row.headquarters_state,
+      headquartersCountry: row.headquarters_country,
+      headquartersLatitude: MerchantsService.decimalLikeToNumber(row.headquarters_latitude),
+      headquartersLongitude: MerchantsService.decimalLikeToNumber(row.headquarters_longitude),
+      phoneNumber: row.phone_number,
+      address: row.address,
+      brandingConfig: row.branding_config,
+      logoUrl: row.logo_url,
+      timezone: row.timezone,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
     };
   }
 

@@ -25,4 +25,5 @@ auth:
   type: bearer
   credentials:
     token: "{{bearerToken}}"
+examples: ./.resources/Merchants Controller get Merchant By Id.resources/examples
 order: 500

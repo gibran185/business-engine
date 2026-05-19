@@ -1,0 +1,47 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/merchants/:merchantId"
+  method: GET
+  pathVariables:
+    merchantId: 11111111-1111-4111-8111-111111111111
+  headers:
+    - key: Authorization
+      value: Bearer {{bearerToken}}
+  body:
+    type: text
+    content: ""
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: json
+    content: |-
+      {
+        "id": "11111111-1111-4111-8111-111111111111",
+        "name": "Acme Corporation",
+        "slug": "acme-corporation",
+        "ownerUserId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+        "legalRepresentativeFirstName": "John",
+        "legalRepresentativeLastName": "Doe",
+        "taxId": "ABC123456789",
+        "headquartersFirstLine": "123 Business Ave",
+        "headquartersSecondLine": "Suite 456",
+        "headquartersZipcode": "12345",
+        "headquartersMunicipality": "New York",
+        "headquartersState": "NY",
+        "headquartersCountry": "USA",
+        "headquartersLatitude": 40.7128,
+        "headquartersLongitude": -74.006,
+        "phoneNumber": "+15551234567",
+        "address": "123 Business Ave, Suite 456, 12345 New York, NY, USA",
+        "brandingConfig": {
+          "logo_url": null,
+          "primary_color": "#000000",
+          "secondary_color": "#ffffff"
+        },
+        "logoUrl": "https://example.com/logo.png",
+        "timezone": "America/New_York",
+        "createdAt": "2026-01-15T10:00:00.000Z",
+        "updatedAt": "2026-05-18T14:30:00.000Z"
+      }
+order: 1000
