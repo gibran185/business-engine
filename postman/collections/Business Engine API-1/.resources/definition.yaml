@@ -1,10 +1,14 @@
 $kind: collection
 name: Business Engine API
 description: >-
-  Variables mirror postman/environments/Business Engine Local.postman_environment.json.
+  Variables mirror postman/environments/Business Engine — Local.environment.yaml.
   Set bearerToken (Supabase access_token), inviteStaffUserId (auth.users UUID for new staff),
   and replace merchant/service/staff/customer UUIDs with live values from your DB. Import the
   Local environment in Postman and select it when sending requests.
+
+  Merchant onboarding: POST /merchants/onboarding accepts a partial body (only businessName is
+  required). Save merchant.id into the merchantId variable, then PATCH /merchants/:merchantId/onboarding
+  (merchant admin JWT) to fill legal representative, headquarters, phone, tax ID, and geoposition.
 variables:
   baseUrl: http://localhost:3000
   bearerToken: ""

@@ -1,0 +1,28 @@
+$kind: http-example
+request:
+  url: "{{baseUrl}}/merchants/me"
+  method: GET
+  headers:
+    - key: Content-Type
+      value: application/json
+    - key: Authorization
+      value: Bearer {{bearerToken}}
+response:
+  statusCode: 200
+  statusText: OK
+  body:
+    type: json
+    content: |-
+      [
+        {
+          "id": "{{merchantId}}",
+          "name": "Acme Salon",
+          "slug": "acme-salon",
+          "logoUrl": "https://{{supabaseProjectRef}}.supabase.co/storage/v1/object/public/merchant-logos/{{merchantId}}/logo.png",
+          "address": "123 Main St, New York, NY 10001, USA",
+          "phoneNumber": "+1 555-123-4567",
+          "createdAt": "2026-05-01T12:00:00.000Z",
+          "updatedAt": "2026-05-15T10:30:00.000Z"
+        }
+      ]
+order: 1000

@@ -92,6 +92,16 @@ paths:
           description: ''
       tags: &ref_1
         - Merchants
+  /merchants/me:
+    get:
+      operationId: MerchantsController_listMyMerchants
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      security:
+        - bearer: []
+      tags: *ref_1
   /merchants/onboarding:
     post:
       operationId: MerchantsController_onboarding
@@ -302,6 +312,45 @@ paths:
       responses:
         '200':
           description: ''
+      tags: *ref_1
+  /merchants/{merchantId}/logo:
+    put:
+      operationId: MerchantsController_uploadLogo
+      parameters:
+        - name: merchantId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: ''
+      security:
+        - bearer: []
+      tags: *ref_1
+    delete:
+      operationId: MerchantsController_deleteLogo
+      parameters:
+        - name: merchantId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '204':
+          description: ''
+      security:
+        - bearer: []
       tags: *ref_1
   /merchants/{merchantId}/services:
     post:

@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{baseUrl}}/merchants/:merchantId/logo"
+method: DELETE
+pathVariables:
+  - key: merchantId
+    value: "{{merchantId}}"
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: ""
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Merchants Controller delete Logo.resources/examples
+order: 2000

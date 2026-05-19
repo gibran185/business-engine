@@ -1,7 +1,13 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { Prisma } from '../../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { MerchantStaffRole } from '../../tenancy/merchant-staff-role.enum.js';
+import { StorageService } from '../../storage/storage.service.js';
 import type { JwtUser } from '../../auth/types/jwt-user.types.js';
 import type { CreateMerchantStaffDto } from './dto/create-merchant-staff.dto.js';
 import type {
@@ -16,7 +22,10 @@ import type { UpdateMerchantOnboardingDto } from './dto/update-merchant-onboardi
 
 @Injectable()
 export class MerchantsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private storage: StorageService,
+  ) {}
 
   async onboarding(user: JwtUser, dto: CreateMerchantOnboardingDto) {
     const ownerUserId = user.userId;
@@ -82,6 +91,7 @@ export class MerchantsService {
           headquarters_longitude: true,
           phone_number: true,
           address: true,
+          logo_url: true,
           timezone: true,
           created_at: true,
           updated_at: true,
@@ -139,6 +149,7 @@ export class MerchantsService {
         headquarters_longitude: true,
         phone_number: true,
         address: true,
+        logo_url: true,
         timezone: true,
         created_at: true,
         updated_at: true,
@@ -220,6 +231,7 @@ export class MerchantsService {
         headquarters_longitude: true,
         phone_number: true,
         address: true,
+        logo_url: true,
         timezone: true,
         created_at: true,
         updated_at: true,
@@ -325,6 +337,7 @@ export class MerchantsService {
       headquarters_longitude: unknown;
       phone_number: string | null;
       address: string | null;
+      logo_url: string | null;
       timezone: string;
       created_at: Date | null;
       updated_at: Date | null;
@@ -713,5 +726,116 @@ export class MerchantsService {
     });
 
     return { staffId, rows: dto.rows };
+  }
+
+  async listMyMerchants(userId: string) {
+    const merchants = await this.prisma.merchants.findMany({
+      where: { owner_user_id: userId },
+      orderBy: { created_at: 'desc' },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        logo_url: true,
+        address: true,
+        phone_number: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+
+    return merchants.map((m) => ({
+      id: m.id,
+      name: m.name,
+      slug: m.slug,
+      logoUrl: m.logo_url,
+      address: m.address,
+      phoneNumber: m.phone_number,
+      createdAt: m.created_at,
+      updatedAt: m.updated_at,
+    }));
+  }
+
+  async uploadLogo(merchantId: string, file: Express.Multer.File) {
+    // Validate file type
+    if (!this.storage.validateImageType(file.mimetype)) {
+      throw new BadRequestException(
+        'Invalid file type. Only PNG, JPEG, and WebP images are allowed.',
+      );
+    }
+
+    // Validate file size (2MB limit)
+    if (!this.storage.validateImageSize(file.size)) {
+      throw new BadRequestException(
+        'File too large. Maximum size is 2MB.',
+      );
+    }
+
+    // Verify merchant exists
+    const merchant = await this.prisma.merchants.findUnique({
+      where: { id: merchantId },
+      select: { id: true, logo_url: true },
+    });
+
+    if (!merchant) {
+      throw new NotFoundException('Merchant not found');
+    }
+
+    // Upload to Supabase Storage
+    const publicUrl = await this.storage.uploadMerchantLogo(
+      merchantId,
+      file.buffer,
+      file.mimetype,
+    );
+
+    // Update merchant record
+    const updated = await this.prisma.merchants.update({
+      where: { id: merchantId },
+      data: { logo_url: publicUrl, updated_at: new Date() },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        logo_url: true,
+        address: true,
+        phone_number: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+
+    return {
+      id: updated.id,
+      name: updated.name,
+      slug: updated.slug,
+      logoUrl: updated.logo_url,
+      address: updated.address,
+      phoneNumber: updated.phone_number,
+      createdAt: updated.created_at,
+      updatedAt: updated.updated_at,
+    };
+  }
+
+  async deleteLogo(merchantId: string) {
+    // Verify merchant exists
+    const merchant = await this.prisma.merchants.findUnique({
+      where: { id: merchantId },
+      select: { id: true, logo_url: true },
+    });
+
+    if (!merchant) {
+      throw new NotFoundException('Merchant not found');
+    }
+
+    // Delete from storage if there's a logo
+    if (merchant.logo_url) {
+      await this.storage.deleteMerchantLogo(merchantId);
+    }
+
+    // Update merchant record to clear logo_url
+    await this.prisma.merchants.update({
+      where: { id: merchantId },
+      data: { logo_url: null, updated_at: new Date() },
+    });
   }
 }

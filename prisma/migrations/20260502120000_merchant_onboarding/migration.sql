@@ -18,22 +18,8 @@ CREATE INDEX IF NOT EXISTS "merchants_owner_user_id_idx" ON "core"."merchants"("
 
 CREATE INDEX IF NOT EXISTS "merchants_tax_id_idx" ON "core"."merchants"("tax_id");
 
--- Optional FK to Supabase auth.users (skip when auth.users is absent, e.g. bare local Postgres).
-DO $$
-BEGIN
-  IF EXISTS (
-    SELECT 1
-    FROM information_schema.tables
-    WHERE table_schema = 'auth' AND table_name = 'users'
-  ) AND NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'merchants_owner_user_id_fkey'
-  ) THEN
-    ALTER TABLE "core"."merchants"
-    ADD CONSTRAINT "merchants_owner_user_id_fkey"
-    FOREIGN KEY ("owner_user_id") REFERENCES "auth"."users"("id")
-    ON DELETE SET NULL ON UPDATE NO ACTION;
-  END IF;
-END $$;
+-- Note: FK to auth.users is NOT created to avoid cross-schema issues with Prisma.
+-- The owner_user_id column is just a UUID reference, validated at application level.
 
 -- RLS: allow authenticated users to create their merchant and first staff row (onboarding).
 -- Existing "Staff manage own merchant" does not allow INSERT before a staff row exists.

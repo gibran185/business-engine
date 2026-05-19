@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{baseUrl}}/merchants/:merchantId/logo"
+method: PUT
+pathVariables:
+  - key: merchantId
+    value: "{{merchantId}}"
+headers:
+  Content-Type: multipart/form-data
+body:
+  type: formdata
+  content:
+    - key: file
+      type: file
+      value: /path/to/logo.png
+auth:
+  type: bearer
+  credentials:
+    token: "{{bearerToken}}"
+examples: ./.resources/Merchants Controller upload Logo.resources/examples
+order: 1000

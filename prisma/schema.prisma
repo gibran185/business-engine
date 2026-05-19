@@ -57,6 +57,7 @@ model merchants {
   name            String
   slug            String           @unique
   branding_config Json?            @default("{\"logo_url\": null, \"primary_color\": \"#000000\", \"secondary_color\": \"#ffffff\"}")
+  logo_url        String?
   address         String?
   phone_number    String?
   /// Supabase `auth.users.id` of the business owner (set at onboarding).

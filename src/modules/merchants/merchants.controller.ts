@@ -9,9 +9,13 @@ import {
   Patch,
   Post,
   Put,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
+  BadRequestException,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiTags, ApiConsumes } from '@nestjs/swagger';
 import { MerchantsService } from './merchants.service.js';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard.js';
 import { StaffMerchantParam } from '../../tenancy/decorators/staff-merchant-param.decorator.js';
@@ -35,6 +39,13 @@ export class MerchantsController {
   @Get('config/:slug')
   async getConfigBySlug(@Param('slug') slug: string) {
     return this.merchantsService.getConfigBySlug(slug);
+  }
+
+  @Get('me')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  async listMyMerchants(@CurrentUser() user: JwtUser) {
+    return this.merchantsService.listMyMerchants(user.userId);
   }
 
   @Post('onboarding')
@@ -154,5 +165,32 @@ export class MerchantsController {
     @Body() dto: SetStaffWorkingHoursDto,
   ) {
     return this.merchantsService.setStaffWorkingHours(merchantId, staffId, dto);
+  }
+
+  @Put(':merchantId/logo')
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @UseGuards(JwtAuthGuard, MerchantAdminGuard)
+  @StaffMerchantParam('merchantId')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadLogo(
+    @Param('merchantId', new ParseUUIDPipe()) merchantId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+    return this.merchantsService.uploadLogo(merchantId, file);
+  }
+
+  @Delete(':merchantId/logo')
+  @HttpCode(204)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, MerchantAdminGuard)
+  @StaffMerchantParam('merchantId')
+  async deleteLogo(
+    @Param('merchantId', new ParseUUIDPipe()) merchantId: string,
+  ) {
+    await this.merchantsService.deleteLogo(merchantId);
   }
 }
