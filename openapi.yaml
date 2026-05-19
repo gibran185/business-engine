@@ -118,6 +118,21 @@ paths:
       security:
         - bearer: []
       tags: *ref_1
+  /merchants/{merchantId}:
+    get:
+      operationId: MerchantsController_getMerchantById
+      parameters:
+        - name: merchantId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      security:
+        - bearer: []
+      tags: *ref_1
   /merchants/{merchantId}/onboarding:
     patch:
       operationId: MerchantsController_updateMerchantOnboarding

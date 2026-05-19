@@ -69,6 +69,16 @@ export class MerchantsController {
     return this.merchantsService.updateMerchantOnboarding(merchantId, dto);
   }
 
+  @Get(':merchantId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, MerchantStaffGuard)
+  @StaffMerchantParam('merchantId')
+  async getMerchantById(
+    @Param('merchantId', new ParseUUIDPipe()) merchantId: string,
+  ) {
+    return this.merchantsService.getMerchantById(merchantId);
+  }
+
   @Post(':merchantId/staff')
   @UseGuards(JwtAuthGuard, MerchantAdminGuard)
   @StaffMerchantParam('merchantId')

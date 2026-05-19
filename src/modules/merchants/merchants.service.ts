@@ -342,6 +342,7 @@ export class MerchantsService {
       headquarters_longitude: unknown;
       phone_number: string | null;
       address: string | null;
+      branding_config?: unknown;
       logo_url: string | null;
       timezone: string;
       created_at: Date | null;
@@ -353,6 +354,42 @@ export class MerchantsService {
       headquarters_latitude: MerchantsService.decimalLikeToNumber(row.headquarters_latitude),
       headquarters_longitude: MerchantsService.decimalLikeToNumber(row.headquarters_longitude),
     };
+  }
+
+  async getMerchantById(merchantId: string) {
+    const merchant = await this.prisma.merchants.findUnique({
+      where: { id: merchantId },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        owner_user_id: true,
+        legal_representative_first_name: true,
+        legal_representative_last_name: true,
+        tax_id: true,
+        headquarters_first_line: true,
+        headquarters_second_line: true,
+        headquarters_zipcode: true,
+        headquarters_municipality: true,
+        headquarters_state: true,
+        headquarters_country: true,
+        headquarters_latitude: true,
+        headquarters_longitude: true,
+        phone_number: true,
+        address: true,
+        branding_config: true,
+        logo_url: true,
+        timezone: true,
+        created_at: true,
+        updated_at: true,
+      },
+    });
+
+    if (!merchant) {
+      throw new NotFoundException('Merchant not found');
+    }
+
+    return MerchantsService.serializeMerchantRow(merchant);
   }
 
   async getConfigBySlug(slug: string) {
